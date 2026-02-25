@@ -564,7 +564,7 @@ function MobileBoard({
           {/* TRUCKS */}
           <section className="card mCard">
             <div className="cardTitleRow">
-              <div className="cardTitle">Trucks Not Available</div>
+              <div className="cardTitle">Trucks Available</div>
               <div className="count">{unavailableSorted.length}</div>
             </div>
 
@@ -1069,46 +1069,6 @@ export default function App() {
 
             {/* SIDEBAR */}
             <aside className="sidebar">
-              <div className="card trucksCard">
-                <div className="cardTitleRow">
-                  <div className="cardTitle small">Trucks Not Available</div>
-                  <div className="count">{unavailableSorted.length}</div>
-                </div>
-
-                <div className="trucksBody">
-                  {unavailableSorted.length === 0 ? (
-                    <div className="empty">All trucks available ✅</div>
-                  ) : (
-                    groupedTrucks.map(([label, trucks]) => (
-                      <section className="truckGroup" key={label}>
-                        <div
-                          className={`truckGroupTitle ${label.toLowerCase()}`}
-                        >
-                          <span>{label}</span>
-                          <span className="truckGroupCount">
-                            {trucks.length}
-                          </span>
-                        </div>
-
-                        <div className="truckGroupList">
-                          {trucks.map((n, i) => (
-                            <span key={`${label}-${n}-${i}`}>
-                              {n}
-                              {i < trucks.length - 1 && (
-                                <>
-                                  {", "}
-                                  <wbr />
-                                </>
-                              )}
-                            </span>
-                          ))}
-                        </div>
-                      </section>
-                    ))
-                  )}
-                </div>
-              </div>
-
               <div className="card availTrucksCard">
                 <div className="cardTitleRow">
                   <div className="cardTitle small">Trucks Available</div>
@@ -1185,7 +1145,45 @@ export default function App() {
                   })()}
                 </div>
               </div>
+              <div className="card trucksCard">
+                <div className="cardTitleRow">
+                  <div className="cardTitle small">Trucks Unavailable</div>
+                  <div className="count">{unavailableSorted.length}</div>
+                </div>
 
+                <div className="trucksBody">
+                  {unavailableSorted.length === 0 ? (
+                    <div className="empty">All trucks available ✅</div>
+                  ) : (
+                    groupedTrucks.map(([label, trucks]) => (
+                      <section className="truckGroup" key={label}>
+                        <div
+                          className={`truckGroupTitle ${label.toLowerCase()}`}
+                        >
+                          <span>{label}</span>
+                          <span className="truckGroupCount">
+                            {trucks.length}
+                          </span>
+                        </div>
+
+                        <div className="truckGroupList">
+                          {trucks.map((n, i) => (
+                            <span key={`${label}-${n}-${i}`}>
+                              {n}
+                              {i < trucks.length - 1 && (
+                                <>
+                                  {", "}
+                                  <wbr />
+                                </>
+                              )}
+                            </span>
+                          ))}
+                        </div>
+                      </section>
+                    ))
+                  )}
+                </div>
+              </div>
               <div className="card driversCard">
                 <div className="cardTitleRow">
                   <div className="cardTitle small">Available Drivers</div>
