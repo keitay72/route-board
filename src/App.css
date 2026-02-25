@@ -540,6 +540,10 @@ body {
   inset: 0;
   backface-visibility: hidden;
   -webkit-backface-visibility: hidden;
+
+  /* LG hardening: make sure faces always occupy full area */
+  width: 100%;
+  height: 100%;
 }
 
 .flipFront {
@@ -560,14 +564,22 @@ body {
 .loaderScreen {
   height: 100%;
   width: 100%;
-  display: grid;
-  place-items: center;
+
+  /* TV-safe centering (Flex instead of Grid) */
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .loaderStage {
   width: min(1100px, 96vw);
-  display: grid;
-  place-items: center;
+
+  /* TV-safe layout (Flex instead of Grid) */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+
   gap: 18px;
   text-align: center;
 }
@@ -596,6 +608,10 @@ body {
   width: 100%;
   height: auto;
   overflow: visible;
+
+  /* LG hardening: avoid inline SVG baseline quirks */
+  display: block;
+  margin: 0 auto;
 
   transform-box: fill-box;
   transform-origin: 50% 90%;
