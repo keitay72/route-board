@@ -460,6 +460,7 @@ function MobileBoard({
   groupedTrucks,
   availableTrucks,
   availableDrivers,
+  unavailableDrivers,
   message,
 }) {
   const norm = (v) =>
@@ -480,9 +481,10 @@ function MobileBoard({
           <img
             src={cfg.logoSrc}
             alt={cfg.logoAlt}
-            className="logo"
+            className="mHeaderLogo"
             draggable="false"
           />
+          <div className="mHeaderTitle">{cfg.title}</div>
         </div>
 
         {/* WEEK + DATE ONLY (NO TIME) */}
@@ -637,15 +639,50 @@ function MobileBoard({
               <div className="count">{availableDrivers.length}</div>
             </div>
 
-            <div className="mDriversGrid">
+            <div className="mSectionBody">
               {availableDrivers.length === 0 ? (
                 <div className="empty">No available drivers</div>
               ) : (
-                availableDrivers.map((d, i) => (
-                  <div key={`${d}-${i}`} className="driverChip">
-                    {d}
-                  </div>
-                ))
+                <div className="truckGroupList">
+                  {availableDrivers.map((d, i) => (
+                    <span key={`avail-driver-${d}-${i}`}>
+                      {d}
+                      {i < availableDrivers.length - 1 && (
+                        <>
+                          {", "}
+                          <wbr />
+                        </>
+                      )}
+                    </span>
+                  ))}
+                </div>
+              )}
+            </div>
+          </section>
+          {/* UNAVAILABLE DRIVERS */}
+          <section className="card mCard">
+            <div className="cardTitleRow">
+              <div className="cardTitle">Unavailable Drivers</div>
+              <div className="count">{unavailableDrivers.length}</div>
+            </div>
+
+            <div className="mSectionBody">
+              {unavailableDrivers.length === 0 ? (
+                <div className="empty">None ✅</div>
+              ) : (
+                <div className="truckGroupList">
+                  {unavailableDrivers.map((d, i) => (
+                    <span key={`unavail-driver-${d}-${i}`}>
+                      {d}
+                      {i < unavailableDrivers.length - 1 && (
+                        <>
+                          {", "}
+                          <wbr />
+                        </>
+                      )}
+                    </span>
+                  ))}
+                </div>
               )}
             </div>
           </section>
@@ -679,6 +716,10 @@ export default function App() {
   const unavailable = useMemo(() => data?.unavailableTrucks || [], [data]);
   const message = useMemo(() => (data?.message || "").trim(), [data]);
   const availableDrivers = useMemo(() => data?.availableDrivers || [], [data]);
+  const unavailableDrivers = useMemo(
+    () => data?.unavailableDrivers || [],
+    [data],
+  );
 
   const unavailableSorted = useMemo(() => {
     const rank = (s) => (s === "Down" ? 0 : s === "Unavailable" ? 1 : 2);
@@ -914,6 +955,7 @@ export default function App() {
               groupedTrucks={groupedTrucks}
               availableTrucks={availableTrucks}
               availableDrivers={availableDrivers}
+              unavailableDrivers={unavailableDrivers}
               message={message}
             />
           </div>
@@ -943,13 +985,15 @@ export default function App() {
           <div className="layout">
             {/* HEADER */}
             <header className="header">
-              <div className="logoWrap">
+              <div className="headerLeft">
                 <img
                   src={cfg.logoSrc}
                   alt={cfg.logoAlt}
-                  className="logo"
+                  className="headerLogo"
                   draggable="false"
                 />
+
+                <div className="headerTitle">{cfg.title}</div>
               </div>
 
               <div className="timestamp">
@@ -1148,20 +1192,50 @@ export default function App() {
                   <div className="count">{availableDrivers.length}</div>
                 </div>
 
-                <div className="driversBody" ref={driversBodyRef}>
-                  <div
-                    className={`driversListCompact ${driversDensity} ${driversColsClass}`}
-                  >
-                    {availableDrivers.length === 0 ? (
-                      <div className="empty">No available drivers</div>
-                    ) : (
-                      availableDrivers.map((d, i) => (
-                        <div key={`${d}-${i}`} className="driverChip" title={d}>
+                <div className="driversBody">
+                  {availableDrivers.length === 0 ? (
+                    <div className="empty">No available drivers</div>
+                  ) : (
+                    <div className="truckGroupList">
+                      {availableDrivers.map((d, i) => (
+                        <span key={`tv-avail-${d}-${i}`}>
                           {d}
-                        </div>
-                      ))
-                    )}
-                  </div>
+                          {i < availableDrivers.length - 1 && (
+                            <>
+                              {", "}
+                              <wbr />
+                            </>
+                          )}
+                        </span>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+              <div className="card driversCard">
+                <div className="cardTitleRow">
+                  <div className="cardTitle small">Unavailable Drivers</div>
+                  <div className="count">{unavailableDrivers.length}</div>
+                </div>
+
+                <div className="driversBody">
+                  {unavailableDrivers.length === 0 ? (
+                    <div className="empty">None ✅</div>
+                  ) : (
+                    <div className="truckGroupList">
+                      {unavailableDrivers.map((d, i) => (
+                        <span key={`tv-unavail-${d}-${i}`}>
+                          {d}
+                          {i < unavailableDrivers.length - 1 && (
+                            <>
+                              {", "}
+                              <wbr />
+                            </>
+                          )}
+                        </span>
+                      ))}
+                    </div>
+                  )}
                 </div>
               </div>
             </aside>

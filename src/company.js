@@ -17,6 +17,7 @@ export function getCompanyConfig(company) {
     return {
       ...base,
       displayName: "Mountain High Disposal",
+      title: "MOUNTAIN HIGH DISPOSAL ROUTE BOARD",
       apiUrl: mhdUrl,
       logoSrc: "/mhd-logo.png",
       logoAlt: "Mountain High Disposal",
