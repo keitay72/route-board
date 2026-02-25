@@ -3,6 +3,7 @@ import "./App.css";
 import { getCompanyConfig, getCompanyFromUrl } from "./company";
 
 const REFRESH_MS = 15000;
+const SIDEBAR_FLIP_MS = 5000;
 
 const GRID_COLS = 5;
 const GRID_ROWS = 13;
@@ -72,7 +73,6 @@ function formatGeneratedAt(iso) {
   }
 }
 
-// Mobile shows week+date only (no time)
 function formatGeneratedAtNoTime(iso) {
   const s = formatGeneratedAt(iso);
   return s.replace(/ • \d{1,2}:\d{2}.*$/, "");
@@ -184,10 +184,8 @@ function LoadingMark({ variant, tagline }) {
           </radialGradient>
         </defs>
 
-        {/* shadow */}
         <ellipse cx="450" cy="210" rx="380" ry="18" fill="rgba(0,0,0,.15)" />
 
-        {/* frame */}
         <rect
           x="170"
           y="175"
@@ -198,7 +196,6 @@ function LoadingMark({ variant, tagline }) {
         />
 
         <g id="truck" className="truckBody">
-          {/* REAR MODULE */}
           <g id="rear">
             <g id="body">
               <rect
@@ -241,7 +238,6 @@ function LoadingMark({ variant, tagline }) {
               />
             </g>
 
-            {/* arm rail + hoses */}
             <g id="arm">
               <rect
                 x="440"
@@ -271,14 +267,12 @@ function LoadingMark({ variant, tagline }) {
               />
             </g>
 
-            {/* rear wheels */}
             <g id="rearWheels">
               {wheel(260, 190, 34, true)}
               {wheel(345, 190, 34, true)}
             </g>
           </g>
 
-          {/* FRONT MODULE */}
           <g id="front" transform="translate(50,0)">
             <g id="engine">
               <rect
@@ -397,8 +391,20 @@ function LoadingMark({ variant, tagline }) {
 }
 
 // ------------------------------
-// Routes helpers
+// Helpers
 // ------------------------------
+function norm(v) {
+  return String(v ?? "")
+    .trim()
+    .toLowerCase();
+}
+
+function normTruck(v) {
+  const s = String(v ?? "").trim();
+  const m = s.match(/\d{3,4}/);
+  return m ? m[0] : "";
+}
+
 function buildCityGroupedItems(dispatchRows, rowsPerCol) {
   const items = [];
   let currentCity = null;
@@ -436,18 +442,6 @@ function toColumns(items, cols, rows) {
   return columns;
 }
 
-function normTruck(v) {
-  const s = String(v ?? "").trim();
-  const m = s.match(/\d{3,4}/);
-  return m ? m[0] : "";
-}
-
-function norm(v) {
-  return String(v ?? "")
-    .trim()
-    .toLowerCase();
-}
-
 // IMPORTANT: width-only mobile detection (prevents weird portrait desktop triggers)
 function useIsMobile() {
   const [isMobile, setIsMobile] = useState(() => {
@@ -473,10 +467,8 @@ function useIsMobile() {
   return isMobile;
 }
 
-// Comma-separated list with wbr breaks (same look as your truck lists)
 function CommaList({ items, keyPrefix }) {
   if (!items || items.length === 0) return null;
-
   return (
     <>
       {items.map((x, i) => (
@@ -495,7 +487,8 @@ function CommaList({ items, keyPrefix }) {
 }
 
 // ------------------------------
-// Mobile Board
+// Mobile Board (NO flipping)
+// Order: Trucks Available, Trucks Unavailable, Drivers Available, Drivers Unavailable
 // ------------------------------
 function MobileBoard({
   cfg,
@@ -522,7 +515,6 @@ function MobileBoard({
       const type = String(t?.type ?? "").trim();
       const truck = String(t?.truck ?? "").trim();
       if (!truck) continue;
-
       if (type === "Residential ASL") res.push(truck);
       else if (type === "Commercial FEL") com.push(truck);
     }
@@ -531,7 +523,6 @@ function MobileBoard({
 
   return (
     <div className="mobileRoot">
-      {/* ================= HEADER (LOCKED) ================= */}
       <header className="mHeader">
         <div className="mLogoRow">
           <img
@@ -548,17 +539,14 @@ function MobileBoard({
         </div>
       </header>
 
-      {/* ================= SCROLLING CONTENT ================= */}
       <div className="mScroll">
         <div className="mLayout">
-          {/* MESSAGE */}
           {message ? (
             <div className="card mMessageCard">
               <div className="mMessageText">{message}</div>
             </div>
           ) : null}
 
-          {/* ROUTES */}
           <section className="card mCard">
             <div className="cardTitleRow">
               <div className="cardTitle">Routes</div>
@@ -605,7 +593,7 @@ function MobileBoard({
             </div>
           </section>
 
-          {/* TRUCKS AVAILABLE */}
+          {/* Trucks Available */}
           <section className="card mCard">
             <div className="cardTitleRow">
               <div className="cardTitle">Trucks Available</div>
@@ -644,7 +632,8 @@ function MobileBoard({
               )}
             </div>
           </section>
-          {/* TRUCKS UNAVAILABLE */}
+
+          {/* Trucks Unavailable */}
           <section className="card mCard">
             <div className="cardTitleRow">
               <div className="cardTitle">Trucks Unavailable</div>
@@ -667,10 +656,11 @@ function MobileBoard({
               )}
             </div>
           </section>
-          {/* AVAILABLE DRIVERS */}
+
+          {/* Drivers Available */}
           <section className="card mCard">
             <div className="cardTitleRow">
-              <div className="cardTitle">Available Drivers</div>
+              <div className="cardTitle">Drivers Available</div>
               <div className="count">{availableDrivers.length}</div>
             </div>
 
@@ -688,10 +678,10 @@ function MobileBoard({
             </div>
           </section>
 
-          {/* UNAVAILABLE DRIVERS */}
+          {/* Drivers Unavailable */}
           <section className="card mCard">
             <div className="cardTitleRow">
-              <div className="cardTitle">Unavailable Drivers</div>
+              <div className="cardTitle">Drivers Unavailable</div>
               <div className="count">{unavailableDrivers.length}</div>
             </div>
 
@@ -709,7 +699,6 @@ function MobileBoard({
             </div>
           </section>
 
-          {/* COPYRIGHT */}
           <div className="mCopyright">
             Copyright © {new Date().getFullYear()} {cfg.copyright}. All rights
             reserved.
@@ -720,6 +709,9 @@ function MobileBoard({
   );
 }
 
+// ------------------------------
+// App
+// ------------------------------
 export default function App() {
   const isMobile = useIsMobile();
 
@@ -728,11 +720,24 @@ export default function App() {
 
   const { data, error, loading } = useRouteBoardData(cfg.apiUrl);
 
-  // Flip: show loader until first successful data load (kept for both layouts)
+  // show loader until first successful data load
   const [revealBoard, setRevealBoard] = useState(false);
   useEffect(() => {
     if (!revealBoard && data) setRevealBoard(true);
   }, [data, revealBoard]);
+
+  // TV/DESKTOP: flip between trucks view and drivers view
+  const [sidebarFace, setSidebarFace] = useState("trucks"); // "trucks" | "drivers"
+  useEffect(() => {
+    if (isMobile) return;
+    if (!revealBoard) return;
+
+    const t = setInterval(() => {
+      setSidebarFace((prev) => (prev === "trucks" ? "drivers" : "trucks"));
+    }, SIDEBAR_FLIP_MS);
+
+    return () => clearInterval(t);
+  }, [isMobile, revealBoard]);
 
   // API payload
   const dispatch = useMemo(() => data?.dispatch || [], [data]);
@@ -746,7 +751,7 @@ export default function App() {
     [data],
   );
 
-  // Sort "Trucks Not Available"
+  // Sort "Trucks Unavailable"
   const unavailableSorted = useMemo(() => {
     const rank = (s) => (s === "Down" ? 0 : s === "Unavailable" ? 1 : 2);
 
@@ -792,7 +797,7 @@ export default function App() {
     });
   }, [unavailableSorted]);
 
-  // Build routes grid items for TV/Desktop columns
+  // Build routes grid
   const items = useMemo(
     () => buildCityGroupedItems(dispatch, GRID_ROWS),
     [dispatch],
@@ -803,7 +808,7 @@ export default function App() {
     [slots],
   );
 
-  // Build set of trucks assigned on dispatch so we can exclude them from "available trucks"
+  // exclude trucks that are assigned
   const assignedTruckSet = useMemo(() => {
     const set = new Set();
     for (const r of dispatch) {
@@ -815,11 +820,7 @@ export default function App() {
     return set;
   }, [dispatch]);
 
-  // Filter available trucks from shop sheet:
-  // - Must start with 6 (MHD) or 8 (KCD)
-  // - Must be "Available"
-  // - Must be one of the tracked types
-  // - Must NOT be assigned to any route
+  // Available trucks from shop list
   const prefix = company === "mhd" ? "6" : "8";
   const trackedTypes = useMemo(
     () => new Set(["Residential ASL", "Commercial FEL"]),
@@ -834,8 +835,7 @@ export default function App() {
       if (!truck) continue;
       if (!truck.startsWith(prefix)) continue;
 
-      const status = norm(row?.status);
-      if (status !== "available") continue;
+      if (norm(row?.status) !== "available") continue;
 
       const type = String(row?.type ?? "").trim();
       if (!trackedTypes.has(type)) continue;
@@ -850,6 +850,21 @@ export default function App() {
     );
     return out;
   }, [shopTrucks, prefix, trackedTypes, assignedTruckSet]);
+
+  // Split available trucks by type for display
+  const { residential, commercial } = useMemo(() => {
+    const res = [];
+    const com = [];
+    for (const t of availableTrucks) {
+      const type = String(t?.type ?? "").trim();
+      const truck = String(t?.truck ?? "").trim();
+      if (!truck) continue;
+
+      if (type === "Residential ASL") res.push(truck);
+      else if (type === "Commercial FEL") com.push(truck);
+    }
+    return { residential: res, commercial: com };
+  }, [availableTrucks]);
 
   // =========================
   // MOBILE
@@ -987,143 +1002,148 @@ export default function App() {
               </div>
             </main>
 
+            {/* SIDEBAR: flips between trucks view and drivers view */}
             <aside className="sidebar">
-              {/* Trucks Not Available */}
-              <div className="card trucksCard">
-                <div className="cardTitleRow">
-                  <div className="cardTitle small">Trucks Not Available</div>
-                  <div className="count">{unavailableSorted.length}</div>
-                </div>
+              <div className="sidebarFlipStage">
+                <div
+                  className={`sidebarFlipCard ${
+                    sidebarFace === "drivers" ? "isFlipped" : ""
+                  }`}
+                >
+                  {/* FRONT: TRUCKS */}
+                  <div className="sidebarFace sidebarFront">
+                    <div className="card">
+                      <div className="cardTitleRow">
+                        <div className="cardTitle small">Trucks Available</div>
+                        <div className="count">{availableTrucks.length}</div>
+                      </div>
 
-                <div className="trucksBody">
-                  {unavailableSorted.length === 0 ? (
-                    <div className="empty">All trucks available ✅</div>
-                  ) : (
-                    groupedTrucks.map(([label, trucks]) => (
-                      <section className="truckGroup" key={label}>
-                        <div
-                          className={`truckGroupTitle ${label.toLowerCase()}`}
-                        >
-                          <span>{label}</span>
-                          <span className="truckGroupCount">
-                            {trucks.length}
-                          </span>
-                        </div>
+                      <div className="availTrucksBody">
+                        {residential.length === 0 && commercial.length === 0 ? (
+                          <div className="empty">No available trucks ✅</div>
+                        ) : (
+                          <>
+                            <section className="truckGroup">
+                              <div className="truckGroupTitle">
+                                <span>Residential</span>
+                                <span className="truckGroupCount">
+                                  {residential.length}
+                                </span>
+                              </div>
+                              <div className="truckGroupList">
+                                {residential.length ? (
+                                  <CommaList
+                                    items={residential}
+                                    keyPrefix="tv-res"
+                                  />
+                                ) : (
+                                  "—"
+                                )}
+                              </div>
+                            </section>
 
-                        <div className="truckGroupList">
-                          <CommaList
-                            items={trucks}
-                            keyPrefix={`unavail-${label}`}
-                          />
-                        </div>
-                      </section>
-                    ))
-                  )}
-                </div>
-              </div>
-
-              {/* Trucks Available */}
-              <div className="card availTrucksCard">
-                <div className="cardTitleRow">
-                  <div className="cardTitle small">Trucks Available</div>
-                  <div className="count">{availableTrucks.length}</div>
-                </div>
-
-                <div className="availTrucksBody">
-                  {(() => {
-                    const res = availableTrucks
-                      .filter(
-                        (t) => String(t.type).trim() === "Residential ASL",
-                      )
-                      .map((t) => t.truck);
-
-                    const com = availableTrucks
-                      .filter((t) => String(t.type).trim() === "Commercial FEL")
-                      .map((t) => t.truck);
-
-                    if (res.length === 0 && com.length === 0) {
-                      return (
-                        <div className="empty">No available trucks ✅</div>
-                      );
-                    }
-
-                    return (
-                      <>
-                        <section className="truckGroup">
-                          <div className="truckGroupTitle">
-                            <span>Residential</span>
-                            <span className="truckGroupCount">
-                              {res.length}
-                            </span>
-                          </div>
-                          <div className="truckGroupList">
-                            {res.length ? (
-                              <CommaList items={res} keyPrefix="tv-res" />
-                            ) : (
-                              "—"
-                            )}
-                          </div>
-                        </section>
-
-                        <section className="truckGroup">
-                          <div className="truckGroupTitle">
-                            <span>Commercial</span>
-                            <span className="truckGroupCount">
-                              {com.length}
-                            </span>
-                          </div>
-                          <div className="truckGroupList">
-                            {com.length ? (
-                              <CommaList items={com} keyPrefix="tv-com" />
-                            ) : (
-                              "—"
-                            )}
-                          </div>
-                        </section>
-                      </>
-                    );
-                  })()}
-                </div>
-              </div>
-
-              {/* Drivers */}
-              <div className="card driversCard">
-                <div className="cardTitleRow">
-                  <div className="cardTitle small">Available Drivers</div>
-                  <div className="count">{availableDrivers.length}</div>
-                </div>
-
-                <div className="driversBody">
-                  {availableDrivers.length === 0 ? (
-                    <div className="empty">No available drivers</div>
-                  ) : (
-                    <div className="truckGroupList">
-                      <CommaList
-                        items={availableDrivers}
-                        keyPrefix="tv-avail-driver"
-                      />
+                            <section className="truckGroup">
+                              <div className="truckGroupTitle">
+                                <span>Commercial</span>
+                                <span className="truckGroupCount">
+                                  {commercial.length}
+                                </span>
+                              </div>
+                              <div className="truckGroupList">
+                                {commercial.length ? (
+                                  <CommaList
+                                    items={commercial}
+                                    keyPrefix="tv-com"
+                                  />
+                                ) : (
+                                  "—"
+                                )}
+                              </div>
+                            </section>
+                          </>
+                        )}
+                      </div>
                     </div>
-                  )}
-                </div>
-              </div>
 
-              <div className="card driversCard">
-                <div className="cardTitleRow">
-                  <div className="cardTitle small">Unavailable Drivers</div>
-                  <div className="count">{unavailableDrivers.length}</div>
-                </div>
+                    <div className="card">
+                      <div className="cardTitleRow">
+                        <div className="cardTitle small">
+                          Trucks Unavailable
+                        </div>
+                        <div className="count">{unavailableSorted.length}</div>
+                      </div>
 
-                <div className="driversBody">
-                  {unavailableDrivers.length === 0 ? (
-                    <div className="empty">None ✅</div>
-                  ) : (
-                    <div className="truckGroupList">
-                      <CommaList
-                        items={unavailableDrivers}
-                        keyPrefix="tv-unavail-driver"
-                      />
+                      <div className="trucksBody">
+                        {unavailableSorted.length === 0 ? (
+                          <div className="empty">All trucks available ✅</div>
+                        ) : (
+                          groupedTrucks.map(([label, trucks]) => (
+                            <section className="truckGroup" key={label}>
+                              <div
+                                className={`truckGroupTitle ${label.toLowerCase()}`}
+                              >
+                                <span>{label}</span>
+                                <span className="truckGroupCount">
+                                  {trucks.length}
+                                </span>
+                              </div>
+                              <div className="truckGroupList">
+                                <CommaList
+                                  items={trucks}
+                                  keyPrefix={`unavail-${label}`}
+                                />
+                              </div>
+                            </section>
+                          ))
+                        )}
+                      </div>
                     </div>
-                  )}
+                  </div>
+
+                  {/* BACK: DRIVERS */}
+                  <div className="sidebarFace sidebarBack">
+                    <div className="card">
+                      <div className="cardTitleRow">
+                        <div className="cardTitle small">Drivers Available</div>
+                        <div className="count">{availableDrivers.length}</div>
+                      </div>
+
+                      <div className="driversBody">
+                        {availableDrivers.length === 0 ? (
+                          <div className="empty">No available drivers</div>
+                        ) : (
+                          <div className="truckGroupList">
+                            <CommaList
+                              items={availableDrivers}
+                              keyPrefix="tv-avail-driver"
+                            />
+                          </div>
+                        )}
+                      </div>
+                    </div>
+
+                    <div className="card">
+                      <div className="cardTitleRow">
+                        <div className="cardTitle small">
+                          Drivers Unavailable
+                        </div>
+                        <div className="count">{unavailableDrivers.length}</div>
+                      </div>
+
+                      <div className="driversBody">
+                        {unavailableDrivers.length === 0 ? (
+                          <div className="empty">None ✅</div>
+                        ) : (
+                          <div className="truckGroupList">
+                            <CommaList
+                              items={unavailableDrivers}
+                              keyPrefix="tv-unavail-driver"
+                            />
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </div>
             </aside>
