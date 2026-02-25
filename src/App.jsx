@@ -1,4 +1,4 @@
-import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import "./App.css";
 import { getCompanyConfig, getCompanyFromUrl } from "./company";
 
@@ -11,8 +11,7 @@ const GRID_SLOTS = GRID_COLS * GRID_ROWS; // 65
 // ------------------------------
 // A/B WEEK (TV-safe)
 // ------------------------------
-// Set this to a Sunday you KNOW begins an A week:
-const ANCHOR_SUNDAY = "2026-02-15"; // <-- update to real anchor if you want
+const ANCHOR_SUNDAY = "2026-02-15"; // set to a Sunday that starts an A week
 
 function parseYMDLocal(ymd) {
   // Safari/TV-safe: avoid Date("YYYY-MM-DD") parsing
@@ -28,7 +27,7 @@ function startOfWeekSunday(dateObj) {
   const x = new Date(dateObj.getTime());
   x.setHours(0, 0, 0, 0);
   const day = x.getDay(); // 0=Sun..6=Sat
-  x.setDate(x.getDate() - day); // snap back to Sunday
+  x.setDate(x.getDate() - day);
   return x;
 }
 
@@ -71,6 +70,12 @@ function formatGeneratedAt(iso) {
   } catch {
     return "—";
   }
+}
+
+// Mobile shows week+date only (no time)
+function formatGeneratedAtNoTime(iso) {
+  const s = formatGeneratedAt(iso);
+  return s.replace(/ • \d{1,2}:\d{2}.*$/, "");
 }
 
 function useRouteBoardData(url) {
@@ -123,20 +128,21 @@ function useRouteBoardData(url) {
 function wheel(cx, cy, r, spin) {
   return (
     <g className={`wheel ${spin ? "wheelSpin" : ""}`}>
-      <circle cx={cx} cy={cy} r={r} fill="#111418"></circle>
-      <circle cx={cx} cy={cy} r={r - 18} fill="url(#rimGrad)"></circle>
-      <circle cx={cx} cy={cy} r="6" fill="#7d8794"></circle>
+      <circle cx={cx} cy={cy} r={r} fill="#111418" />
+      <circle cx={cx} cy={cy} r={r - 18} fill="url(#rimGrad)" />
+      <circle cx={cx} cy={cy} r="6" fill="#7d8794" />
       <path
         d={`M${cx} ${cy - r + 6} V${cy + r - 6} M${cx - r + 6} ${cy} H${cx + r - 6}`}
         stroke="rgba(0,0,0,.25)"
         strokeWidth="2"
-      ></path>
+      />
     </g>
   );
 }
 
 function LoadingMark({ variant, tagline }) {
   const isMhd = variant === "mhd";
+
   return (
     <main className="loaderStage">
       <svg
@@ -295,7 +301,6 @@ function LoadingMark({ variant, tagline }) {
                 strokeWidth="2"
               />
 
-              {/* Truck number ALWAYS renders */}
               <text
                 x="658"
                 y="143"
@@ -309,34 +314,50 @@ function LoadingMark({ variant, tagline }) {
                 {isMhd ? "608" : "825"}
               </text>
 
-              <>
-                <text
-                  x={isMhd ? "595" : "605"}
-                  y="155"
-                  fontFamily="Arial, Helvetica, sans-serif"
-                  fontSize="10"
-                  letterSpacing="1"
-                  fill="none"
-                  stroke="#000"
-                  strokeWidth=".8"
-                >
-                  {isMhd ? "Mountain High" : "KC Disposal"}
-                </text>
+              <text
+                x={isMhd ? "595" : "605"}
+                y="155"
+                fontFamily="Arial, Helvetica, sans-serif"
+                fontSize="10"
+                letterSpacing="1"
+                fill="none"
+                stroke="#000"
+                strokeWidth=".8"
+              >
+                {isMhd ? "Mountain High" : "KC Disposal"}
+              </text>
+
+              {isMhd ? (
+                <>
+                  <text
+                    x="613"
+                    y="168"
+                    fontFamily="Arial, Helvetica, sans-serif"
+                    fontSize="10"
+                    letterSpacing="1"
+                    fill="none"
+                    stroke="#000"
+                    strokeWidth=".8"
+                  >
+                    Disposal
+                  </text>
+                  <text
+                    x="613"
+                    y="180"
+                    fontFamily="Arial, Helvetica, sans-serif"
+                    fontSize="5.8"
+                    letterSpacing="1"
+                    fill="none"
+                    stroke="#000"
+                    strokeWidth=".8"
+                  >
+                    (970) 834-1144
+                  </text>
+                </>
+              ) : (
                 <text
                   x="613"
-                  y="168"
-                  fontFamily="Arial, Helvetica, sans-serif"
-                  fontSize="10"
-                  letterSpacing="1"
-                  fill="none"
-                  stroke="#000"
-                  strokeWidth=".8"
-                >
-                  {isMhd ? "Disposal" : null}
-                </text>
-                <text
-                  x="613"
-                  y={isMhd ? "180" : "165"}
+                  y="165"
                   fontFamily="Arial, Helvetica, sans-serif"
                   fontSize="5.8"
                   letterSpacing="1"
@@ -344,9 +365,9 @@ function LoadingMark({ variant, tagline }) {
                   stroke="#000"
                   strokeWidth=".8"
                 >
-                  {isMhd ? "(970) 834-1144" : "816-388-9739"}
+                  816-388-9739
                 </text>
-              </>
+              )}
 
               <path
                 d="M580 75 L645 75 L667 130 L580 130 Z"
@@ -415,12 +436,17 @@ function toColumns(items, cols, rows) {
   return columns;
 }
 
-const normTruck = (v) => {
+function normTruck(v) {
   const s = String(v ?? "").trim();
-  // grab the first 3–4 digit number (802, 600, etc)
   const m = s.match(/\d{3,4}/);
   return m ? m[0] : "";
-};
+}
+
+function norm(v) {
+  return String(v ?? "")
+    .trim()
+    .toLowerCase();
+}
 
 // IMPORTANT: width-only mobile detection (prevents weird portrait desktop triggers)
 function useIsMobile() {
@@ -447,6 +473,27 @@ function useIsMobile() {
   return isMobile;
 }
 
+// Comma-separated list with wbr breaks (same look as your truck lists)
+function CommaList({ items, keyPrefix }) {
+  if (!items || items.length === 0) return null;
+
+  return (
+    <>
+      {items.map((x, i) => (
+        <span key={`${keyPrefix}-${x}-${i}`}>
+          {x}
+          {i < items.length - 1 && (
+            <>
+              {", "}
+              <wbr />
+            </>
+          )}
+        </span>
+      ))}
+    </>
+  );
+}
+
 // ------------------------------
 // Mobile Board
 // ------------------------------
@@ -463,15 +510,24 @@ function MobileBoard({
   unavailableDrivers,
   message,
 }) {
-  const norm = (v) =>
-    String(v ?? "")
-      .trim()
-      .toLowerCase();
-
-  const mobileItems = useMemo(
+  const routeItems = useMemo(
     () => items.filter((x) => x.type !== "blank"),
     [items],
   );
+
+  const { residential, commercial } = useMemo(() => {
+    const res = [];
+    const com = [];
+    for (const t of availableTrucks) {
+      const type = String(t?.type ?? "").trim();
+      const truck = String(t?.truck ?? "").trim();
+      if (!truck) continue;
+
+      if (type === "Residential ASL") res.push(truck);
+      else if (type === "Commercial FEL") com.push(truck);
+    }
+    return { residential: res, commercial: com };
+  }, [availableTrucks]);
 
   return (
     <div className="mobileRoot">
@@ -487,12 +543,8 @@ function MobileBoard({
           <div className="mHeaderTitle">{cfg.title}</div>
         </div>
 
-        {/* WEEK + DATE ONLY (NO TIME) */}
         <div className="mTimestamp">
-          {(() => {
-            const s = formatGeneratedAt(data?.generatedAt);
-            return s.replace(/ • \d{1,2}:\d{2}.*$/, "");
-          })()}
+          {formatGeneratedAtNoTime(data?.generatedAt)}
         </div>
       </header>
 
@@ -514,57 +566,88 @@ function MobileBoard({
             </div>
 
             {loading && !data && <div className="mInlineNotice">Loading…</div>}
-            {error && (
+            {error ? (
               <div className="mInlineNotice mError">Error: {error}</div>
-            )}
+            ) : null}
 
             <div className="mRoutesList">
-              {items
-                .filter((x) => x.type !== "blank")
-                .map((item, idx) => {
-                  if (item.type === "city") {
-                    return (
-                      <div className="tile cityTile mCity" key={`mcity-${idx}`}>
-                        {item.city}
-                      </div>
-                    );
-                  }
-
-                  const isComplete =
-                    String(item.status).toLowerCase() === "complete";
-
-                  const missingDriver =
-                    !item.driver ||
-                    String(item.driver).toLowerCase() === "open";
-
-                  const missingTruck =
-                    !item.truck || String(item.truck).toLowerCase() === "open";
-
-                  const alertClass =
-                    !isComplete && (missingDriver || missingTruck)
-                      ? "routeAlert"
-                      : "";
-
-                  const completeClass = isComplete ? "routeComplete" : "";
-
+              {routeItems.map((item, idx) => {
+                if (item.type === "city") {
                   return (
-                    <div
-                      className={`tile routeTile mRouteRow ${alertClass} ${completeClass}`}
-                      key={`mroute-${idx}`}
-                    >
-                      <div className="routeCode">{item.route}</div>
-                      <div className="driverName">{item.driver}</div>
-                      <div className="truckNum">{item.truck}</div>
+                    <div className="tile cityTile mCity" key={`mcity-${idx}`}>
+                      {item.city}
                     </div>
                   );
-                })}
+                }
+
+                const isComplete = norm(item.status) === "complete";
+                const missingDriver =
+                  !item.driver || norm(item.driver) === "open";
+                const missingTruck = !item.truck || norm(item.truck) === "open";
+
+                const alertClass =
+                  !isComplete && (missingDriver || missingTruck)
+                    ? "routeAlert"
+                    : "";
+                const completeClass = isComplete ? "routeComplete" : "";
+
+                return (
+                  <div
+                    className={`tile routeTile mRouteRow ${alertClass} ${completeClass}`}
+                    key={`mroute-${idx}`}
+                  >
+                    <div className="routeCode">{item.route}</div>
+                    <div className="driverName">{item.driver}</div>
+                    <div className="truckNum">{item.truck}</div>
+                  </div>
+                );
+              })}
             </div>
           </section>
 
-          {/* TRUCKS */}
+          {/* TRUCKS AVAILABLE */}
           <section className="card mCard">
             <div className="cardTitleRow">
               <div className="cardTitle">Trucks Available</div>
+              <div className="count">{availableTrucks.length}</div>
+            </div>
+
+            <div className="mSectionBody">
+              {residential.length === 0 && commercial.length === 0 ? (
+                <div className="empty">No available trucks ✅</div>
+              ) : (
+                <>
+                  <section className="truckGroup">
+                    <div className="truckGroupTitle">
+                      <span>Residential</span>
+                      <span className="truckGroupCount">
+                        {residential.length}
+                      </span>
+                    </div>
+                    <div className="truckGroupList">
+                      {residential.length ? residential.join(", ") : "—"}
+                    </div>
+                  </section>
+
+                  <section className="truckGroup">
+                    <div className="truckGroupTitle">
+                      <span>Commercial</span>
+                      <span className="truckGroupCount">
+                        {commercial.length}
+                      </span>
+                    </div>
+                    <div className="truckGroupList">
+                      {commercial.length ? commercial.join(", ") : "—"}
+                    </div>
+                  </section>
+                </>
+              )}
+            </div>
+          </section>
+          {/* TRUCKS UNAVAILABLE */}
+          <section className="card mCard">
+            <div className="cardTitleRow">
+              <div className="cardTitle">Trucks Unavailable</div>
               <div className="count">{unavailableSorted.length}</div>
             </div>
 
@@ -584,55 +667,7 @@ function MobileBoard({
               )}
             </div>
           </section>
-
-          <section className="card mCard">
-            <div className="cardTitleRow">
-              <div className="cardTitle">Trucks Available</div>
-              <div className="count">{availableTrucks.length}</div>
-            </div>
-
-            <div className="mSectionBody">
-              {(() => {
-                const res = availableTrucks
-                  .filter((t) => String(t.type).trim() === "Residential ASL")
-                  .map((t) => t.truck);
-
-                const com = availableTrucks
-                  .filter((t) => String(t.type).trim() === "Commercial FEL")
-                  .map((t) => t.truck);
-
-                if (res.length === 0 && com.length === 0) {
-                  return <div className="empty">No available trucks ✅</div>;
-                }
-
-                return (
-                  <>
-                    <section className="truckGroup">
-                      <div className="truckGroupTitle">
-                        <span>Residential</span>
-                        <span className="truckGroupCount">{res.length}</span>
-                      </div>
-                      <div className="truckGroupList">
-                        {res.length ? res.join(", ") : "—"}
-                      </div>
-                    </section>
-
-                    <section className="truckGroup">
-                      <div className="truckGroupTitle">
-                        <span>Commercial</span>
-                        <span className="truckGroupCount">{com.length}</span>
-                      </div>
-                      <div className="truckGroupList">
-                        {com.length ? com.join(", ") : "—"}
-                      </div>
-                    </section>
-                  </>
-                );
-              })()}
-            </div>
-          </section>
-
-          {/* DRIVERS */}
+          {/* AVAILABLE DRIVERS */}
           <section className="card mCard">
             <div className="cardTitleRow">
               <div className="cardTitle">Available Drivers</div>
@@ -644,21 +679,15 @@ function MobileBoard({
                 <div className="empty">No available drivers</div>
               ) : (
                 <div className="truckGroupList">
-                  {availableDrivers.map((d, i) => (
-                    <span key={`avail-driver-${d}-${i}`}>
-                      {d}
-                      {i < availableDrivers.length - 1 && (
-                        <>
-                          {", "}
-                          <wbr />
-                        </>
-                      )}
-                    </span>
-                  ))}
+                  <CommaList
+                    items={availableDrivers}
+                    keyPrefix="m-avail-driver"
+                  />
                 </div>
               )}
             </div>
           </section>
+
           {/* UNAVAILABLE DRIVERS */}
           <section className="card mCard">
             <div className="cardTitleRow">
@@ -671,17 +700,10 @@ function MobileBoard({
                 <div className="empty">None ✅</div>
               ) : (
                 <div className="truckGroupList">
-                  {unavailableDrivers.map((d, i) => (
-                    <span key={`unavail-driver-${d}-${i}`}>
-                      {d}
-                      {i < unavailableDrivers.length - 1 && (
-                        <>
-                          {", "}
-                          <wbr />
-                        </>
-                      )}
-                    </span>
-                  ))}
+                  <CommaList
+                    items={unavailableDrivers}
+                    keyPrefix="m-unavail-driver"
+                  />
                 </div>
               )}
             </div>
@@ -706,14 +728,17 @@ export default function App() {
 
   const { data, error, loading } = useRouteBoardData(cfg.apiUrl);
 
-  // Flip: show loader until first successful data load (TV/Desktop only)
+  // Flip: show loader until first successful data load (kept for both layouts)
   const [revealBoard, setRevealBoard] = useState(false);
   useEffect(() => {
     if (!revealBoard && data) setRevealBoard(true);
   }, [data, revealBoard]);
 
+  // API payload
   const dispatch = useMemo(() => data?.dispatch || [], [data]);
   const unavailable = useMemo(() => data?.unavailableTrucks || [], [data]);
+  const shopTrucks = useMemo(() => data?.shopTrucks || [], [data]);
+
   const message = useMemo(() => (data?.message || "").trim(), [data]);
   const availableDrivers = useMemo(() => data?.availableDrivers || [], [data]);
   const unavailableDrivers = useMemo(
@@ -721,8 +746,10 @@ export default function App() {
     [data],
   );
 
+  // Sort "Trucks Not Available"
   const unavailableSorted = useMemo(() => {
     const rank = (s) => (s === "Down" ? 0 : s === "Unavailable" ? 1 : 2);
+
     return [...unavailable].sort((a, b) => {
       const r = rank(a.status) - rank(b.status);
       if (r !== 0) return r;
@@ -732,42 +759,8 @@ export default function App() {
     });
   }, [unavailable]);
 
-  const residentialPrefix = company === "mhd" ? "6" : "8";
-
-  const unavailableSet = useMemo(() => {
-    return new Set(unavailableSorted.map((t) => String(t.truck ?? "").trim()));
-  }, [unavailableSorted]);
-
-  const availableResidentialTrucks = useMemo(() => {
-    const seen = new Set();
-    const out = [];
-
-    for (const r of dispatch) {
-      const t = String(r?.truck ?? "").trim();
-      if (!t) continue;
-
-      const tl = t.toLowerCase();
-      if (tl === "open") continue;
-      if (!t.startsWith(residentialPrefix)) continue;
-      if (unavailableSet.has(t)) continue;
-
-      if (!seen.has(t)) {
-        seen.add(t);
-        out.push(t);
-      }
-    }
-
-    out.sort((a, b) =>
-      String(a).localeCompare(String(b), undefined, { numeric: true }),
-    );
-    return out;
-  }, [dispatch, unavailableSet, residentialPrefix]);
-
   const groupedTrucks = useMemo(() => {
-    const cleanLabel = (s) => {
-      const raw = String(s ?? "").trim();
-      return raw ? raw : "Unknown";
-    };
+    const cleanLabel = (s) => String(s ?? "").trim() || "Unknown";
 
     const groups = new Map();
     for (const t of unavailableSorted) {
@@ -799,6 +792,7 @@ export default function App() {
     });
   }, [unavailableSorted]);
 
+  // Build routes grid items for TV/Desktop columns
   const items = useMemo(
     () => buildCityGroupedItems(dispatch, GRID_ROWS),
     [dispatch],
@@ -809,24 +803,23 @@ export default function App() {
     [slots],
   );
 
-  const shopTrucks = useMemo(() => data?.shopTrucks || [], [data]);
-
+  // Build set of trucks assigned on dispatch so we can exclude them from "available trucks"
   const assignedTruckSet = useMemo(() => {
     const set = new Set();
     for (const r of dispatch) {
       const t = normTruck(r?.truck);
       if (!t) continue;
-      if (
-        String(r?.truck ?? "")
-          .trim()
-          .toLowerCase() === "open"
-      )
-        continue;
+      if (norm(r?.truck) === "open") continue;
       set.add(t);
     }
     return set;
   }, [dispatch]);
 
+  // Filter available trucks from shop sheet:
+  // - Must start with 6 (MHD) or 8 (KCD)
+  // - Must be "Available"
+  // - Must be one of the tracked types
+  // - Must NOT be assigned to any route
   const prefix = company === "mhd" ? "6" : "8";
   const trackedTypes = useMemo(
     () => new Set(["Residential ASL", "Commercial FEL"]),
@@ -838,17 +831,15 @@ export default function App() {
 
     for (const row of shopTrucks) {
       const truck = normTruck(row?.truck);
-      const status = String(row?.status ?? "")
-        .trim()
-        .toLowerCase();
-      const type = String(row?.type ?? "").trim();
-
       if (!truck) continue;
       if (!truck.startsWith(prefix)) continue;
+
+      const status = norm(row?.status);
       if (status !== "available") continue;
+
+      const type = String(row?.type ?? "").trim();
       if (!trackedTypes.has(type)) continue;
 
-      // ✅ key line: don't list if assigned
       if (assignedTruckSet.has(truck)) continue;
 
       out.push({ truck, type });
@@ -857,83 +848,16 @@ export default function App() {
     out.sort((a, b) =>
       a.truck.localeCompare(b.truck, undefined, { numeric: true }),
     );
-
     return out;
   }, [shopTrucks, prefix, trackedTypes, assignedTruckSet]);
 
-  console.log("ASSIGNED", Array.from(assignedTruckSet).slice(0, 30));
-  console.log("SHOP", shopTrucks.slice(0, 10));
-  console.log("AVAILABLE", availableTrucks.slice(0, 30));
-
-  // Drivers: auto switch 1 -> 2 columns when it won't fit (TV/Desktop only)
-  const driversBodyRef = useRef(null);
-  const [driversCols, setDriversCols] = useState(1);
-
-  const driversDensity = useMemo(() => {
-    const n = availableDrivers.length;
-    if (n >= 22) return "dense";
-    if (n >= 14) return "mid";
-    return "";
-  }, [availableDrivers.length]);
-
-  const driversColsClass = driversCols === 2 ? "twoCol" : "oneCol";
-
-  useLayoutEffect(() => {
-    const el = driversBodyRef.current;
-    if (!el) return;
-
-    if (typeof ResizeObserver === "undefined") {
-      setDriversCols(1);
-      return;
-    }
-
-    const compute = () => {
-      const rect = el.getBoundingClientRect();
-      const height = Math.max(1, rect.height);
-
-      const gap =
-        driversDensity === "dense" ? 3 : driversDensity === "mid" ? 4 : 5;
-      const rowH =
-        driversDensity === "dense" ? 16 : driversDensity === "mid" ? 17 : 18;
-
-      const rowsThatFit = Math.max(
-        1,
-        Math.floor((height + gap) / (rowH + gap)),
-      );
-
-      setDriversCols(availableDrivers.length > rowsThatFit ? 2 : 1);
-    };
-
-    let raf = 0;
-    const ro = new ResizeObserver(() => {
-      cancelAnimationFrame(raf);
-      raf = requestAnimationFrame(compute);
-    });
-
-    ro.observe(el);
-    compute();
-    window.addEventListener("resize", compute);
-
-    return () => {
-      ro.disconnect();
-      window.removeEventListener("resize", compute);
-      cancelAnimationFrame(raf);
-    };
-  }, [availableDrivers.length, driversDensity]);
-
-  const norm = (v) =>
-    String(v ?? "")
-      .trim()
-      .toLowerCase();
-
   // =========================
-  // MOBILE: flip animation version
+  // MOBILE
   // =========================
   if (isMobile) {
     return (
       <div className="flipStage" style={{ "--watermark": cfg.watermark }}>
         <div className={`flipCard ${revealBoard ? "isRevealed" : ""}`}>
-          {/* FRONT: Loader */}
           <div className="flipFace flipFront">
             <div className="loaderScreen">
               <LoadingMark
@@ -943,7 +867,6 @@ export default function App() {
             </div>
           </div>
 
-          {/* BACK: Mobile board */}
           <div className="flipFace flipBack">
             <MobileBoard
               cfg={cfg}
@@ -965,12 +888,11 @@ export default function App() {
   }
 
   // =========================
-  // TV/DESKTOP: Keep flip system exactly as-is
+  // TV / DESKTOP
   // =========================
   return (
     <div className="flipStage" style={{ "--watermark": cfg.watermark }}>
       <div className={`flipCard ${revealBoard ? "isRevealed" : ""}`}>
-        {/* FRONT: Loader */}
         <div className="flipFace flipFront">
           <div className="loaderScreen">
             <LoadingMark
@@ -980,10 +902,8 @@ export default function App() {
           </div>
         </div>
 
-        {/* BACK: App */}
         <div className="flipFace flipBack">
           <div className="layout">
-            {/* HEADER */}
             <header className="header">
               <div className="headerLeft">
                 <img
@@ -992,7 +912,6 @@ export default function App() {
                   className="headerLogo"
                   draggable="false"
                 />
-
                 <div className="headerTitle">{cfg.title}</div>
               </div>
 
@@ -1001,7 +920,6 @@ export default function App() {
               </div>
             </header>
 
-            {/* MAIN (Routes) */}
             <main className="main">
               <div className="card routesCard">
                 <div className="routesBody">
@@ -1060,15 +978,51 @@ export default function App() {
                   </div>
                 </div>
 
-                {loading && !data && (
+                {loading && !data ? (
                   <div className="loadingOverlay">Loading…</div>
-                )}
-                {error && <div className="errorOverlay">Error: {error}</div>}
+                ) : null}
+                {error ? (
+                  <div className="errorOverlay">Error: {error}</div>
+                ) : null}
               </div>
             </main>
 
-            {/* SIDEBAR */}
             <aside className="sidebar">
+              {/* Trucks Not Available */}
+              <div className="card trucksCard">
+                <div className="cardTitleRow">
+                  <div className="cardTitle small">Trucks Not Available</div>
+                  <div className="count">{unavailableSorted.length}</div>
+                </div>
+
+                <div className="trucksBody">
+                  {unavailableSorted.length === 0 ? (
+                    <div className="empty">All trucks available ✅</div>
+                  ) : (
+                    groupedTrucks.map(([label, trucks]) => (
+                      <section className="truckGroup" key={label}>
+                        <div
+                          className={`truckGroupTitle ${label.toLowerCase()}`}
+                        >
+                          <span>{label}</span>
+                          <span className="truckGroupCount">
+                            {trucks.length}
+                          </span>
+                        </div>
+
+                        <div className="truckGroupList">
+                          <CommaList
+                            items={trucks}
+                            keyPrefix={`unavail-${label}`}
+                          />
+                        </div>
+                      </section>
+                    ))
+                  )}
+                </div>
+              </div>
+
+              {/* Trucks Available */}
               <div className="card availTrucksCard">
                 <div className="cardTitleRow">
                   <div className="cardTitle small">Trucks Available</div>
@@ -1103,18 +1057,11 @@ export default function App() {
                             </span>
                           </div>
                           <div className="truckGroupList">
-                            {res.map((n, i) => (
-                              <span key={`avail-res-${n}-${i}`}>
-                                {n}
-                                {i < res.length - 1 && (
-                                  <>
-                                    {", "}
-                                    <wbr />
-                                  </>
-                                )}
-                              </span>
-                            ))}
-                            {res.length === 0 ? "—" : null}
+                            {res.length ? (
+                              <CommaList items={res} keyPrefix="tv-res" />
+                            ) : (
+                              "—"
+                            )}
                           </div>
                         </section>
 
@@ -1126,18 +1073,11 @@ export default function App() {
                             </span>
                           </div>
                           <div className="truckGroupList">
-                            {com.map((n, i) => (
-                              <span key={`avail-com-${n}-${i}`}>
-                                {n}
-                                {i < com.length - 1 && (
-                                  <>
-                                    {", "}
-                                    <wbr />
-                                  </>
-                                )}
-                              </span>
-                            ))}
-                            {com.length === 0 ? "—" : null}
+                            {com.length ? (
+                              <CommaList items={com} keyPrefix="tv-com" />
+                            ) : (
+                              "—"
+                            )}
                           </div>
                         </section>
                       </>
@@ -1145,45 +1085,8 @@ export default function App() {
                   })()}
                 </div>
               </div>
-              <div className="card trucksCard">
-                <div className="cardTitleRow">
-                  <div className="cardTitle small">Trucks Unavailable</div>
-                  <div className="count">{unavailableSorted.length}</div>
-                </div>
 
-                <div className="trucksBody">
-                  {unavailableSorted.length === 0 ? (
-                    <div className="empty">All trucks available ✅</div>
-                  ) : (
-                    groupedTrucks.map(([label, trucks]) => (
-                      <section className="truckGroup" key={label}>
-                        <div
-                          className={`truckGroupTitle ${label.toLowerCase()}`}
-                        >
-                          <span>{label}</span>
-                          <span className="truckGroupCount">
-                            {trucks.length}
-                          </span>
-                        </div>
-
-                        <div className="truckGroupList">
-                          {trucks.map((n, i) => (
-                            <span key={`${label}-${n}-${i}`}>
-                              {n}
-                              {i < trucks.length - 1 && (
-                                <>
-                                  {", "}
-                                  <wbr />
-                                </>
-                              )}
-                            </span>
-                          ))}
-                        </div>
-                      </section>
-                    ))
-                  )}
-                </div>
-              </div>
+              {/* Drivers */}
               <div className="card driversCard">
                 <div className="cardTitleRow">
                   <div className="cardTitle small">Available Drivers</div>
@@ -1195,21 +1098,15 @@ export default function App() {
                     <div className="empty">No available drivers</div>
                   ) : (
                     <div className="truckGroupList">
-                      {availableDrivers.map((d, i) => (
-                        <span key={`tv-avail-${d}-${i}`}>
-                          {d}
-                          {i < availableDrivers.length - 1 && (
-                            <>
-                              {", "}
-                              <wbr />
-                            </>
-                          )}
-                        </span>
-                      ))}
+                      <CommaList
+                        items={availableDrivers}
+                        keyPrefix="tv-avail-driver"
+                      />
                     </div>
                   )}
                 </div>
               </div>
+
               <div className="card driversCard">
                 <div className="cardTitleRow">
                   <div className="cardTitle small">Unavailable Drivers</div>
@@ -1221,24 +1118,16 @@ export default function App() {
                     <div className="empty">None ✅</div>
                   ) : (
                     <div className="truckGroupList">
-                      {unavailableDrivers.map((d, i) => (
-                        <span key={`tv-unavail-${d}-${i}`}>
-                          {d}
-                          {i < unavailableDrivers.length - 1 && (
-                            <>
-                              {", "}
-                              <wbr />
-                            </>
-                          )}
-                        </span>
-                      ))}
+                      <CommaList
+                        items={unavailableDrivers}
+                        keyPrefix="tv-unavail-driver"
+                      />
                     </div>
                   )}
                 </div>
               </div>
             </aside>
 
-            {/* FOOTER */}
             <footer className="footer">
               <div className="messageCard">
                 <div className="messageTextScroll">{message || ""}</div>

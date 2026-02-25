@@ -4,12 +4,11 @@
    Theme
    ========================= */
 :root {
-  /* Deep blue TV-friendly theme */
-  --bg: #0b1420; /* page background */
-  --card: #0f1c2b; /* cards */
-  --card2: #122133; /* route tiles */
-  --border: #24364a; /* borders */
-  --text: #eaf2ff; /* text */
+  --bg: #0b1420;
+  --card: #0f1c2b;
+  --card2: #122133;
+  --border: #24364a;
+  --text: #eaf2ff;
 
   --gap: 10px;
   --tileGap: 8px;
@@ -48,7 +47,7 @@ body {
 }
 
 /* =========================
-   Layout — dvh fallback prevents bottom-row clipping on some TVs
+   Layout
    ========================= */
 .layout {
   width: 100vw;
@@ -100,20 +99,23 @@ body {
   opacity: 0.95;
 }
 
-/* Logo — dynamic TV safe */
-.logoWrap {
+/* Desktop header left */
+.headerLeft {
   display: flex;
   align-items: center;
-  height: clamp(18px, 3.2vh, 42px);
+  gap: 14px;
 }
 
-.logo {
-  height: 100%;
+.headerLogo {
+  height: 18px;
   width: auto;
-  object-fit: contain;
-  user-select: none;
-  pointer-events: none;
-  image-rendering: -webkit-optimize-contrast;
+}
+
+.headerTitle {
+  font-size: 16px;
+  font-weight: 800;
+  letter-spacing: 1px;
+  color: #e8f1ff;
 }
 
 /* =========================
@@ -167,7 +169,6 @@ body {
   min-height: 0;
 }
 
-/* watermark (set via --watermark) */
 .routesCard::before {
   content: "";
   position: absolute;
@@ -233,7 +234,6 @@ body {
   border: 1px dashed rgba(232, 238, 246, 0.12);
 }
 
-/* City tile */
 .cityTile {
   display: flex;
   align-items: center;
@@ -252,7 +252,6 @@ body {
   font-size: clamp(10px, 0.8vw, 15px);
 }
 
-/* Route tile typography */
 .routeTile {
   display: grid;
   grid-template-columns: auto 1fr auto;
@@ -289,7 +288,6 @@ body {
   white-space: nowrap;
 }
 
-/* ALERT: red glow fill tile */
 .routeAlert {
   background: radial-gradient(
     120% 140% at 50% 40%,
@@ -297,9 +295,7 @@ body {
     rgba(255, 90, 90, 0.16) 35%,
     rgba(12, 18, 27, 0.98) 78%
   );
-
   border-color: rgba(255, 90, 90, 0.6);
-
   box-shadow:
     0 0 24px rgba(255, 90, 90, 0.28),
     0 0 0 2px rgba(255, 90, 90, 0.18),
@@ -307,7 +303,6 @@ body {
     inset 0 0 0 1px rgba(255, 255, 255, 0.04);
 }
 
-/* COMPLETE: green glow fill tile */
 .routeComplete {
   background: radial-gradient(
     120% 140% at 50% 40%,
@@ -315,9 +310,7 @@ body {
     rgba(80, 255, 160, 0.14) 35%,
     rgba(12, 18, 27, 0.98) 78%
   );
-
   border-color: rgba(80, 255, 160, 0.55);
-
   box-shadow:
     0 0 22px rgba(80, 255, 160, 0.22),
     0 0 0 2px rgba(80, 255, 160, 0.16),
@@ -355,7 +348,7 @@ body {
   font-size: clamp(11px, 0.9vw, 14px);
 }
 
-/* Trucks */
+/* Trucks / Lists */
 .truckGroup {
   margin-bottom: 10px;
 }
@@ -397,47 +390,10 @@ body {
   color: #ffd6a3;
 }
 
-/* Drivers */
+/* Drivers (desktop cards use same list style) */
 .driversBody {
   min-height: 0;
   overflow: hidden;
-}
-
-.driversListCompact {
-  display: grid;
-  gap: 5px;
-  align-content: start;
-}
-
-.driversListCompact.oneCol {
-  grid-template-columns: 1fr;
-}
-
-.driversListCompact.twoCol {
-  grid-template-columns: 1fr 1fr;
-}
-
-.driversListCompact.mid {
-  gap: 4px;
-}
-
-.driversListCompact.dense {
-  gap: 3px;
-}
-
-.driverChip {
-  font-weight: 800;
-  font-size: clamp(10px, 0.75vw, 12px);
-  letter-spacing: 0.15px;
-
-  background: var(--card2);
-  border: 1px solid rgba(29, 42, 58, 0.7);
-  border-radius: 999px;
-  padding: 4px 10px;
-
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
 }
 
 /* =========================
@@ -557,7 +513,6 @@ body {
   transform: rotateY(180deg);
 }
 
-/* Loader screen */
 .loaderScreen {
   height: 100%;
   width: 100%;
@@ -634,7 +589,6 @@ body {
   }
 }
 
-/* Loader: wheel spin */
 .loaderTruck .wheelSpin {
   transform-box: fill-box;
   transform-origin: center;
@@ -661,11 +615,8 @@ body {
 }
 
 /* =========================
-   Mobile / Portrait Layout
-   (does NOT affect TV — only applies to MobileBoard classes)
+   Mobile layout (MobileBoard only)
    ========================= */
-
-/* MOBILE: root stays fixed, scroll happens in mScroll */
 .mobileRoot {
   background: var(--bg);
   color: var(--text);
@@ -676,34 +627,14 @@ body {
   flex-direction: column;
 }
 
-/* The scrolling container */
-.mScroll {
-  flex: 1;
-  overflow-y: auto;
-  overflow-x: hidden;
-  -webkit-overflow-scrolling: touch;
-
-  padding: 12px;
-  padding-top: 0; /* header will handle top padding */
-  padding-right: calc(12px + env(safe-area-inset-right));
-  padding-bottom: calc(12px + env(safe-area-inset-bottom));
-  padding-left: calc(12px + env(safe-area-inset-left));
-  max-width: 100%;
-}
-
-/* Sticky header that stays locked while content scrolls behind */
 .mHeader {
   position: sticky;
   top: 0;
   z-index: 50;
 
-  /* Solid background so content doesn't show THROUGH the header */
   background: var(--bg);
-
-  /* nice separation while scrolling */
   border-bottom: 1px solid rgba(36, 54, 74, 0.65);
 
-  /* include safe area at the very top */
   padding-top: calc(12px + env(safe-area-inset-top));
   padding-bottom: 10px;
 
@@ -714,26 +645,28 @@ body {
   text-align: center;
 }
 
-/* Logo row stays centered and contained */
 .mLogoRow {
-  height: auto;
-  width: 100%;
   display: flex;
   align-items: center;
   justify-content: center;
-}
-
-/* Big colored title/logo image: fit inside screen */
-.mLogoRow .logo {
+  gap: 10px;
+  padding: 6px 10px 2px 10px;
   width: 100%;
-  max-width: 100%;
-  height: auto;
-  max-height: 80px; /* tweak if desired */
-  object-fit: contain;
-  display: block;
 }
 
-/* Center week/date line */
+.mHeaderLogo {
+  height: 16px;
+  width: auto;
+}
+
+.mHeaderTitle {
+  font-size: 13px;
+  font-weight: 900;
+  letter-spacing: 0.5px;
+  color: #e8f1ff;
+  white-space: nowrap;
+}
+
 .mTimestamp {
   font-size: 13px;
   font-weight: 900;
@@ -741,6 +674,21 @@ body {
   width: 100%;
   text-align: center;
 }
+
+.mScroll {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
+
+  padding: 12px;
+  padding-top: 0;
+  padding-right: calc(12px + env(safe-area-inset-right));
+  padding-bottom: calc(12px + env(safe-area-inset-bottom));
+  padding-left: calc(12px + env(safe-area-inset-left));
+  max-width: 100%;
+}
+
 .mLayout {
   display: flex;
   flex-direction: column;
@@ -749,13 +697,12 @@ body {
   max-width: 100%;
   overflow-x: hidden;
 }
-/* Cards */
+
 .mCard {
   height: auto;
   overflow: visible;
 }
 
-/* Message */
 .mMessageCard {
   height: auto;
   padding: 10px 12px;
@@ -766,11 +713,10 @@ body {
   font-size: 15px;
   font-weight: 900;
   line-height: 1.25;
-  white-space: normal; /* allow wrap */
+  white-space: normal;
   text-align: center;
 }
 
-/* Inline notices */
 .mInlineNotice {
   margin: 8px 0;
   font-weight: 900;
@@ -782,7 +728,6 @@ body {
   color: #ffd1d1;
 }
 
-/* Routes list */
 .mRoutesList {
   display: flex;
   flex-direction: column;
@@ -802,22 +747,6 @@ body {
   text-align: center;
 }
 
-/* Drivers grid */
-.mDriversGrid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 8px;
-  align-content: start;
-  width: 100%;
-  max-width: 100%;
-  overflow-x: hidden;
-}
-
-/* Override TV clamp so it stays readable */
-.mobileRoot .driverChip {
-  font-size: 12px;
-}
-
 .mSectionBody {
   overflow: visible;
 }
@@ -830,82 +759,7 @@ body {
   padding: 6px 0 2px;
 }
 
-/* Absolute last line of defense against sideways scroll */
+/* last line of defense */
 .mobileRoot * {
   max-width: 100%;
-}
-
-/* Trucks Available (chips) */
-.availTrucksBody {
-  min-height: 0;
-  overflow: hidden;
-}
-
-.availTrucksList {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-  align-content: flex-start;
-}
-
-.availTruckChip {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-
-  background: var(--card2);
-  border: 1px solid rgba(29, 42, 58, 0.7);
-  border-radius: 999px;
-  padding: 4px 10px;
-
-  font-weight: 900;
-  font-size: clamp(10px, 0.75vw, 12px);
-  letter-spacing: 0.15px;
-  white-space: nowrap;
-}
-
-.availTruckType {
-  opacity: 0.75;
-  font-size: 0.85em;
-  margin-left: 6px;
-}
-
-/* ================= MOBILE HEADER ================= */
-.mLogoRow {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 6px 10px 2px 10px;
-}
-
-.mHeaderLogo {
-  height: 16px;
-  width: auto;
-}
-
-.mHeaderTitle {
-  font-size: 13px;
-  font-weight: 900;
-  letter-spacing: 0.5px;
-  color: #e8f1ff;
-  white-space: nowrap;
-}
-
-/* ================= DESKTOP HEADER ================= */
-.headerLeft {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-}
-
-.headerLogo {
-  height: 18px;
-  width: auto;
-}
-
-.headerTitle {
-  font-size: 16px;
-  font-weight: 800;
-  letter-spacing: 1px;
-  color: #e8f1ff;
 }
