@@ -2,7 +2,13 @@
   functions = "netlify/functions"
 
 [dev]
-  command = "vite"
-  targetPort = 5173
+  # Netlify Dev runs on this port (the one you visit in the browser)
   port = 8888
+
+  # This is where your framework/dev server runs (Vite)
+  targetPort = 5173
+
+  # Run Vite and expose it on your LAN
+  command = "npm run dev -- --host 0.0.0.0 --port 5173"
+
   functions = "netlify/functions"

@@ -1,3 +1,5 @@
+// netlify/functions/fleetio-trip-status.js
+
 export const handler = async (event) => {
   try {
     const apiKey = process.env.FLEETIO_API_KEY;
@@ -24,7 +26,24 @@ export const handler = async (event) => {
 
     const forms = await fetchAllForDate({ base, headers, date });
 
+    // Track latest PRE and latest POST timestamps per truck
     const byTruck = new Map();
+
+    function toMs(f) {
+      // Fleetio records commonly include one or more of these fields.
+      // We try several to be resilient across account/API variations.
+      const raw =
+        f?.submitted_at ||
+        f?.created_at ||
+        f?.updated_at ||
+        f?.submittedAt ||
+        f?.createdAt ||
+        f?.updatedAt ||
+        null;
+
+      const ms = raw ? Date.parse(raw) : NaN;
+      return Number.isNaN(ms) ? null : ms;
+    }
 
     for (const f of forms) {
       const formTitle = String(f?.inspection_form?.title || "")
@@ -36,25 +55,52 @@ export const handler = async (event) => {
       if (!vehicleName) continue;
       if (formDate !== date) continue;
 
+      const isPre = formTitle.includes("pre");
+      const isPost = formTitle.includes("post");
+      if (!isPre && !isPost) continue;
+
+      const ts = toMs(f) ?? 0; // if missing timestamp, still track as "exists" but sequencing may be weaker
+
       if (!byTruck.has(vehicleName)) {
-        byTruck.set(vehicleName, { pretrip: false, posttrip: false });
+        byTruck.set(vehicleName, {
+          hasPre: false,
+          hasPost: false,
+          preLatest: null, // ms
+          postLatest: null, // ms (raw)
+        });
       }
 
       const entry = byTruck.get(vehicleName);
 
-      if (formTitle.includes("pre")) entry.pretrip = true;
-      if (formTitle.includes("post")) entry.posttrip = true;
+      if (isPre) {
+        entry.hasPre = true;
+        entry.preLatest =
+          entry.preLatest == null ? ts : Math.max(entry.preLatest, ts);
+      }
+
+      if (isPost) {
+        entry.hasPost = true;
+        entry.postLatest =
+          entry.postLatest == null ? ts : Math.max(entry.postLatest, ts);
+      }
     }
 
+    // Build output enforcing: posttripEffective only if postLatest > preLatest
     const out = {};
     for (const [truck, v] of byTruck.entries()) {
-      const preOk = !!v.pretrip;
-      const postOk = preOk ? !!v.posttrip : false; // ignore post if no pre
+      const preOk = !!v.hasPre;
+      const postRawOk = !!v.hasPost;
+
+      const postEffectiveOk =
+        preOk &&
+        v.preLatest != null &&
+        v.postLatest != null &&
+        v.postLatest > v.preLatest;
 
       out[truck] = {
         pretrip: preOk ? "ok" : "missing",
-        posttrip: v.posttrip ? "ok" : "missing", // raw
-        posttripEffective: postOk ? "ok" : "missing", // enforced
+        posttrip: postRawOk ? "ok" : "missing", // raw existence
+        posttripEffective: postEffectiveOk ? "ok" : "missing", // enforced order
       };
     }
 
@@ -76,8 +122,7 @@ function json(statusCode, obj) {
 }
 
 async function fetchAllForDate({ base, headers, date }) {
-  // NOTE: You already discovered Fleetio rejects high per_page.
-  // 50 works for your account.
+  // NOTE: Fleetio rejects high per_page; 50 works for your account.
   const PER_PAGE = 50;
 
   const target = Date.parse(date); // Node runtime is fine with YYYY-MM-DD
@@ -98,8 +143,8 @@ async function fetchAllForDate({ base, headers, date }) {
       throw new Error(`Fleetio HTTP ${res.status} ${text}`.trim());
     }
 
-    const json = await res.json();
-    const page = Array.isArray(json) ? json : json.records || [];
+    const j = await res.json();
+    const page = Array.isArray(j) ? j : j.records || [];
     if (!page.length) break;
 
     // collect only exact date matches
@@ -128,7 +173,7 @@ async function fetchAllForDate({ base, headers, date }) {
       if (hasOlder) break;
     }
 
-    next = json?.next_cursor || null;
+    next = j?.next_cursor || null;
     if (!next) break;
   }
 
