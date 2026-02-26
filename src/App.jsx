@@ -16,7 +16,6 @@ const GRID_SLOTS = GRID_COLS * GRID_ROWS; // 65
 const ANCHOR_SUNDAY = "2026-02-15"; // set to a Sunday that starts an A week
 
 function parseYMDLocal(ymd) {
-  // Safari/TV-safe: avoid Date("YYYY-MM-DD") parsing
   const [y, m, d] = String(ymd)
     .split("-")
     .map((n) => parseInt(n, 10));
@@ -79,6 +78,21 @@ function formatGeneratedAtNoTime(iso) {
   return s.replace(/ • \d{1,2}:\d{2}.*$/, "");
 }
 
+// Route board date as YYYY-MM-DD from generatedAt
+function ymdFromIso(iso) {
+  if (!iso) return "";
+  try {
+    const d = new Date(iso);
+    if (Number.isNaN(d.getTime())) return "";
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, "0");
+    const day = String(d.getDate()).padStart(2, "0");
+    return `${y}-${m}-${day}`;
+  } catch {
+    return "";
+  }
+}
+
 function useRouteBoardData(url) {
   const [data, setData] = useState(null);
   const [error, setError] = useState("");
@@ -123,6 +137,46 @@ function useRouteBoardData(url) {
   return { data, error, loading };
 }
 
+// Fleetio trip status from Netlify function (server-side secrets)
+function useFleetioTripStatus(dateYmd) {
+  const [trucks, setTrucks] = useState({});
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    if (!dateYmd) return;
+
+    let cancelled = false;
+    let timer;
+
+    async function load() {
+      try {
+        setError("");
+        const res = await fetch(
+          `/.netlify/functions/fleetio-trip-status?date=${encodeURIComponent(
+            dateYmd,
+          )}`,
+          { cache: "no-store" },
+        );
+        if (!res.ok) throw new Error(`Fleetio fn HTTP ${res.status}`);
+        const json = await res.json();
+        if (!cancelled) setTrucks(json?.trucks || {});
+      } catch (e) {
+        if (!cancelled) setError(String(e?.message || e));
+      }
+    }
+
+    load();
+    timer = setInterval(load, REFRESH_MS);
+
+    return () => {
+      cancelled = true;
+      clearInterval(timer);
+    };
+  }, [dateYmd]);
+
+  return { trucks, error };
+}
+
 // ------------------------------
 // Helpers
 // ------------------------------
@@ -134,7 +188,7 @@ function norm(v) {
 
 function normTruck(v) {
   const s = String(v ?? "").trim();
-  const m = s.match(/\d{3,4}/);
+  const m = s.match(/\d{2,4}/);
   return m ? m[0] : "";
 }
 
@@ -175,7 +229,7 @@ function toColumns(items, cols, rows) {
   return columns;
 }
 
-// IMPORTANT: width-only mobile detection (prevents weird portrait desktop triggers)
+// IMPORTANT: width-only mobile detection
 function useIsMobile() {
   const [isMobile, setIsMobile] = useState(() => {
     if (typeof window === "undefined") return false;
@@ -221,7 +275,6 @@ function CommaList({ items, keyPrefix }) {
 
 // ------------------------------
 // Mobile Board (NO flipping)
-// Order: Trucks Available, Trucks Unavailable, Drivers Available, Drivers Unavailable
 // ------------------------------
 function MobileBoard({
   cfg,
@@ -235,6 +288,7 @@ function MobileBoard({
   availableDrivers,
   unavailableDrivers,
   message,
+  fleetioTrips,
 }) {
   const routeItems = useMemo(
     () => items.filter((x) => x.type !== "blank"),
@@ -302,6 +356,19 @@ function MobileBoard({
                 }
 
                 const isComplete = norm(item.status) === "complete";
+
+                const truckId = normTruck(item.truck);
+                const trip = truckId ? fleetioTrips?.[truckId] : null;
+
+                // LEFT: pretrip red if missing, green if ok
+                const preClass = trip?.pretrip === "ok" ? "isOk" : "isLate";
+
+                // RIGHT: gray initially, green if post (only if pre exists),
+                // red if complete + missing post.
+                let postClass = "isMissing";
+                if (trip?.posttripEffective === "ok") postClass = "isOk";
+                else if (isComplete) postClass = "isLate";
+
                 const missingDriver =
                   !item.driver || norm(item.driver) === "open";
                 const missingTruck = !item.truck || norm(item.truck) === "open";
@@ -316,10 +383,13 @@ function MobileBoard({
                   <div
                     className={`tile routeTile mRouteRow ${alertClass} ${completeClass}`}
                     key={`mroute-${idx}`}
+                    title={isComplete ? "Complete" : ""}
                   >
+                    <div className={`tripCap left ${preClass}`} />
                     <div className="routeCode">{item.route}</div>
                     <div className="driverName">{item.driver}</div>
                     <div className="truckNum">{item.truck}</div>
+                    <div className={`tripCap right ${postClass}`} />
                   </div>
                 );
               })}
@@ -471,6 +541,13 @@ export default function App() {
 
     return () => clearInterval(t);
   }, [isMobile, revealBoard]);
+
+  // Routeboard date for Fleetio comparison
+  const boardDate = useMemo(
+    () => ymdFromIso(data?.generatedAt),
+    [data?.generatedAt],
+  );
+  const { trucks: fleetioTrips } = useFleetioTripStatus(boardDate);
 
   // API payload
   const dispatch = useMemo(() => data?.dispatch || [], [data]);
@@ -628,6 +705,7 @@ export default function App() {
               availableDrivers={availableDrivers}
               unavailableDrivers={unavailableDrivers}
               message={message}
+              fleetioTrips={fleetioTrips}
             />
           </div>
         </div>
@@ -696,6 +774,20 @@ export default function App() {
                           }
 
                           const isComplete = norm(item.status) === "complete";
+
+                          const truckId = normTruck(item.truck);
+                          const trip = truckId ? fleetioTrips?.[truckId] : null;
+
+                          // LEFT: pretrip red if missing, green if ok
+                          const preClass =
+                            trip?.pretrip === "ok" ? "isOk" : "isLate";
+
+                          // RIGHT: gray initially; green if posttripEffective ok; red if complete + missing
+                          let postClass = "isMissing";
+                          if (trip?.posttripEffective === "ok")
+                            postClass = "isOk";
+                          else if (isComplete) postClass = "isLate";
+
                           const missingDriver =
                             !norm(item.driver) || norm(item.driver) === "open";
                           const missingTruck =
@@ -715,9 +807,11 @@ export default function App() {
                               key={`r-${cIdx}-${rIdx}`}
                               title={isComplete ? "Complete" : ""}
                             >
+                              <div className={`tripCap left ${preClass}`} />
                               <div className="routeCode">{item.route}</div>
                               <div className="driverName">{item.driver}</div>
                               <div className="truckNum">{item.truck}</div>
+                              <div className={`tripCap right ${postClass}`} />
                             </div>
                           );
                         })}
@@ -735,7 +829,6 @@ export default function App() {
               </div>
             </main>
 
-            {/* SIDEBAR: flips between trucks view and drivers view */}
             <aside className="sidebar">
               <div className="sidebarFlipStage">
                 <div
@@ -743,7 +836,6 @@ export default function App() {
                     sidebarFace === "drivers" ? "isFlipped" : ""
                   }`}
                 >
-                  {/* FRONT: TRUCKS */}
                   <div className="sidebarFace sidebarFront">
                     <div className="card">
                       <div className="cardTitleRow">
@@ -833,7 +925,6 @@ export default function App() {
                     </div>
                   </div>
 
-                  {/* BACK: DRIVERS */}
                   <div className="sidebarFace sidebarBack">
                     <div className="card">
                       <div className="cardTitleRow">
