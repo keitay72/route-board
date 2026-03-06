@@ -1,0 +1,49 @@
+/* src/styles/mobileHeader.css */
+
+.mHeader {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+
+  background: var(--bg);
+  border-bottom: 1px solid rgba(36, 54, 74, 0.65);
+
+  padding-top: calc(12px + env(safe-area-inset-top));
+  padding-bottom: 10px;
+
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  align-items: center;
+  text-align: center;
+}
+
+.mLogoRow {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 6px 10px 2px 10px;
+  width: 100%;
+}
+
+.mHeaderLogo {
+  height: 16px;
+  width: auto;
+}
+
+.mHeaderTitle {
+  font-size: 13px;
+  font-weight: 900;
+  letter-spacing: 0.5px;
+  color: #e8f1ff;
+  white-space: nowrap;
+}
+
+.mTimestamp {
+  font-size: 13px;
+  font-weight: 900;
+  opacity: 0.95;
+  width: 100%;
+  text-align: center;
+}

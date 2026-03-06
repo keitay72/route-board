@@ -1,7 +1,34 @@
+// src/company.js
+
 export function getCompanyFromUrl() {
+  const host = window.location.hostname.toLowerCase();
+  const path = window.location.pathname.toLowerCase();
+
+  // Query param override always wins
   const params = new URLSearchParams(window.location.search);
   const raw = (params.get("company") || "").trim().toLowerCase();
-  return raw === "mhd" ? "mhd" : "kcd"; // invalid/missing -> kcd
+
+  if (raw === "mhd") return "mhd";
+  if (raw === "kcd") return "kcd";
+
+  // Host-based detection
+  // Works for:
+  // - mhd.example.com
+  // - routeboard-mhd.netlify.app
+  // - anything with "mhd" in the hostname
+  if (host.includes("mhd")) return "mhd";
+  if (host.includes("kcd")) return "kcd";
+
+  // Path-based detection
+  // Works for:
+  // - /mhd
+  // - /mhd-route-board
+  // - /company/mhd
+  if (path.includes("/mhd")) return "mhd";
+  if (path.includes("/kcd")) return "kcd";
+
+  // Default
+  return "kcd";
 }
 
 export function getCompanyConfig(company) {
@@ -21,7 +48,7 @@ export function getCompanyConfig(company) {
       apiUrl: mhdUrl,
       logoSrc: "/mhd-logo.png",
       logoAlt: "Mountain High Disposal",
-      watermark: 'url("/mhd-logo.png")', // set to "none" if you don’t have it
+      watermark: 'url("/mhd-logo.png")',
       copyright: "Mountain High Disposal LLC",
       loaderVariant: "mhd",
     };
@@ -30,6 +57,7 @@ export function getCompanyConfig(company) {
   return {
     ...base,
     displayName: "KC Disposal",
+    title: "",
     apiUrl: kcdUrl,
     logoSrc: "/kc-logo.png",
     logoAlt: "KC Disposal",

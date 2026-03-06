@@ -1,0 +1,172 @@
+/* src/styles/routeTile.css */
+
+/* =========================
+   Route Tile Layout
+   ========================= */
+
+.routeTile {
+  position: relative;
+  overflow: hidden;
+
+  display: grid;
+  grid-template-columns: max-content minmax(0, 1fr) max-content;
+  align-items: center;
+  column-gap: 5px;
+
+  padding-left: calc(10px + var(--capW));
+  padding-right: calc(10px + var(--capW));
+}
+
+/* Text above paint */
+.routeTile .routeCode,
+.routeTile .driverName,
+.routeTile .truckNum {
+  position: relative;
+  z-index: 2;
+  line-height: 1.05;
+}
+
+/* Placement */
+.routeTile .routeCode {
+  grid-column: 1;
+  justify-self: start;
+}
+
+.routeTile .truckNum {
+  grid-column: 3;
+  justify-self: end;
+}
+
+.routeTile .routeCode,
+.routeTile .truckNum {
+  font-weight: 900;
+  letter-spacing: 0.2px;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+
+  font-size: clamp(
+    calc(11px * var(--tileTypeScale)),
+    calc(1.9vmin * var(--tileTypeScale)),
+    calc(3.2vmin * var(--tileTypeScale))
+  );
+}
+
+/* =========================
+   Driver fit-to-width
+   ========================= */
+
+/* Driver: scale with viewport like route/truck do */
+.routeTile .driverName {
+  grid-column: 2;
+  min-width: 0;
+  width: 100%;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  overflow: hidden;
+
+  /* ✅ this is the missing piece */
+  font-weight: 900;
+  font-size: clamp(
+    calc(12px * var(--tileTypeScale)),
+    calc(2.35vmin * var(--tileTypeScale)),
+    calc(3.25vmin * var(--tileTypeScale))
+  );
+}
+
+.routeTile .driverName .fitText {
+  display: inline-block;
+  white-space: nowrap;
+  transform-origin: center center;
+  will-change: transform;
+}
+
+/* =========================
+   Paint End Caps
+   ========================= */
+
+.tripCap {
+  position: absolute;
+  z-index: 1;
+
+  top: -1px;
+  bottom: -1px;
+  width: var(--capW);
+
+  background: rgba(180, 190, 205, 0.28);
+}
+
+.tripCap.left {
+  left: -1px;
+  border-top-left-radius: 6px;
+  border-bottom-left-radius: 6px;
+}
+
+.tripCap.right {
+  right: -1px;
+  border-top-right-radius: 6px;
+  border-bottom-right-radius: 6px;
+}
+
+.tripCap.isMissing {
+  background: rgba(180, 190, 205, 0.28);
+}
+
+.tripCap.isOk {
+  background: rgba(80, 255, 160, 0.8);
+}
+
+.tripCap.isLate {
+  background: rgba(255, 90, 90, 0.8);
+}
+
+/* src/styles/routeTile.css */
+.tripCap.isWarn {
+  background: rgba(242, 255, 0, 0.85);
+}
+
+/* =========================
+   Route Status Styling
+   ========================= */
+
+.routeAlert {
+  background: radial-gradient(
+    120% 140% at 50% 40%,
+    rgba(255, 90, 90, 0.32) 0%,
+    rgba(255, 90, 90, 0.16) 35%,
+    rgba(12, 18, 27, 0.98) 78%
+  );
+
+  border-color: rgba(255, 90, 90, 0.6);
+
+  box-shadow:
+    0 0 24px rgba(255, 90, 90, 0.28),
+    0 0 0 2px rgba(255, 90, 90, 0.18),
+    inset 0 0 20px rgba(255, 90, 90, 0.18),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.04);
+}
+
+.routeComplete {
+  background: radial-gradient(
+    120% 140% at 50% 40%,
+    rgba(80, 255, 160, 0.28) 0%,
+    rgba(80, 255, 160, 0.14) 35%,
+    rgba(12, 18, 27, 0.98) 78%
+  );
+
+  border-color: rgba(80, 255, 160, 0.55);
+
+  box-shadow:
+    0 0 22px rgba(80, 255, 160, 0.22),
+    0 0 0 2px rgba(80, 255, 160, 0.16),
+    inset 0 0 18px rgba(80, 255, 160, 0.18),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.04);
+}
+
+.routeComplete .routeCode,
+.routeComplete .driverName,
+.routeComplete .truckNum {
+  color: #eafff3;
+}

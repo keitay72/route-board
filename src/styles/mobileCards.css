@@ -1,0 +1,62 @@
+/* src/styles/mobileCards.css */
+
+.mCard {
+  height: auto;
+  overflow: visible;
+}
+
+.mMessageCard {
+  height: auto;
+  padding: 10px 12px;
+  text-align: center;
+}
+
+.mMessageText {
+  font-size: 15px;
+  font-weight: 900;
+  line-height: 1.25;
+  white-space: normal;
+  text-align: center;
+}
+
+.mInlineNotice {
+  margin: 8px 0;
+  font-weight: 900;
+  opacity: 0.9;
+  text-align: center;
+}
+
+.mInlineNotice.mError {
+  color: #ffd1d1;
+}
+
+.mRoutesList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--tileGap);
+  width: 100%;
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
+.mRouteRow {
+  padding: 10px 12px;
+}
+
+.mCity {
+  font-size: 13px;
+  padding: 10px 0;
+  text-align: center;
+}
+
+.mSectionBody {
+  overflow: visible;
+}
+
+.mCopyright {
+  font-size: 10px;
+  font-weight: 800;
+  opacity: 0.6;
+  text-align: center;
+  padding: 6px 0 2px;
+}

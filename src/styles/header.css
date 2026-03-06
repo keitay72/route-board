@@ -1,0 +1,84 @@
+.header {
+  grid-area: header;
+  overflow: hidden;
+
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.headerLeft {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.headerLogo {
+  height: 18px;
+  width: auto;
+}
+
+.headerTitle {
+  font-size: 16px;
+  font-weight: 800;
+  letter-spacing: 1px;
+  color: #e8f1ff;
+}
+
+.timestamp {
+  text-align: right;
+  font-size: 16px;
+  font-weight: 900;
+  white-space: nowrap;
+  opacity: 0.95;
+}
+
+.debugHud {
+  font-size: 12px;
+  font-weight: 900;
+  opacity: 0.8;
+  white-space: nowrap;
+}
+.header {
+  grid-area: header;
+  overflow: hidden;
+
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.headerLeft {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.headerLogo {
+  height: 18px;
+  width: auto;
+}
+
+.headerTitle {
+  font-size: 16px;
+  font-weight: 800;
+  letter-spacing: 1px;
+  color: #e8f1ff;
+}
+
+.timestamp {
+  text-align: right;
+  font-size: 16px;
+  font-weight: 900;
+  white-space: nowrap;
+  opacity: 0.95;
+}
+
+.debugHud {
+  font-size: 12px;
+  font-weight: 900;
+  opacity: 0.8;
+  white-space: nowrap;
+}

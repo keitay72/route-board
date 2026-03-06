@@ -1,0 +1,19 @@
+.loadingOverlay,
+.errorOverlay {
+  position: absolute;
+  inset: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px;
+  font-weight: 900;
+  z-index: 10;
+}
+
+.loadingOverlay {
+  background: rgba(11, 15, 20, 0.55);
+}
+
+.errorOverlay {
+  background: rgba(80, 20, 20, 0.65);
+}

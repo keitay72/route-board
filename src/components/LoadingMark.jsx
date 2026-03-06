@@ -1,3 +1,5 @@
+// LoadingMark.jsx
+
 // ------------------------------
 // Loader SVG (truck)
 // ------------------------------
@@ -24,6 +26,8 @@ export default function LoadingMark({ variant, tagline }) {
       <svg
         className="loaderTruck"
         viewBox="0 0 900 260"
+        preserveAspectRatio="xMidYMid meet"
+        width="100%"
         role="img"
         aria-label="Loading"
       >

@@ -1,0 +1,40 @@
+/* src/styles/typography.css */
+
+/* =========================
+   Shared Typography Utilities
+   ========================= */
+
+/* Strong headings */
+.text-strong {
+  font-weight: 900;
+  letter-spacing: 0.2px;
+}
+
+/* Medium strong */
+.text-bold {
+  font-weight: 800;
+}
+
+/* Numeric emphasis (counts) */
+.text-count {
+  font-weight: 900;
+  opacity: 0.8;
+}
+
+/* Compact lists */
+.text-list {
+  font-weight: 800;
+  line-height: 1.25;
+  opacity: 0.95;
+}
+
+/* Empty states */
+.text-empty {
+  font-weight: 800;
+  opacity: 0.9;
+}
+
+/* Muted small text */
+.text-muted {
+  opacity: 0.6;
+}

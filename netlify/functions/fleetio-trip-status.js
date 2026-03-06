@@ -2,19 +2,29 @@
 
 export const handler = async (event) => {
   try {
+    const url = new URL(event.rawUrl);
+
+    const company = (url.searchParams.get("company") || "kcd")
+      .trim()
+      .toLowerCase();
+
     const apiKey = process.env.FLEETIO_API_KEY;
-    const accountToken = process.env.FLEETIO_ACCOUNT_TOKEN;
+
+    const accountToken =
+      company === "mhd"
+        ? process.env.FLEETIO_ACCOUNT_TOKEN_MHD
+        : process.env.FLEETIO_ACCOUNT_TOKEN_KCD;
 
     if (!apiKey || !accountToken) {
       return json(500, { error: "Missing Fleetio env vars on server." });
     }
 
-    const url = new URL(event.rawUrl);
     const date = url.searchParams.get("date"); // YYYY-MM-DD
-
     if (!date || !/^\d{4}-\d{2}-\d{2}$/.test(date)) {
       return json(400, { error: "Missing/invalid date. Use YYYY-MM-DD." });
     }
+
+    // ...rest of your function unchanged...
 
     const base = "https://secure.fleetio.com/api/v1/submitted_inspection_forms";
 
@@ -91,16 +101,12 @@ export const handler = async (event) => {
       const preOk = !!v.hasPre;
       const postRawOk = !!v.hasPost;
 
-      const postEffectiveOk =
-        preOk &&
-        v.preLatest != null &&
-        v.postLatest != null &&
-        v.postLatest > v.preLatest;
+      const postEffectiveOk = postRawOk;
 
       out[truck] = {
         pretrip: preOk ? "ok" : "missing",
         posttrip: postRawOk ? "ok" : "missing", // raw existence
-        posttripEffective: postEffectiveOk ? "ok" : "missing", // enforced order
+        posttripEffective: postEffectiveOk ? "ok" : "missing", // ✅ matches posttrip
       };
     }
 

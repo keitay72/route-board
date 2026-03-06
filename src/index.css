@@ -1,3 +1,56 @@
+/* =========================
+   App style modules
+   ========================= */
+
+@import "./styles/layout.css";
+@import "./styles/header.css";
+@import "./styles/cards.css";
+
+@import "./styles/routesCard.css";
+@import "./styles/routesGrid.css";
+
+@import "./styles/tiles.css";
+@import "./styles/routeTile.css";
+
+@import "./styles/sidebar.css";
+@import "./styles/footer.css";
+@import "./styles/overlays.css";
+
+@import "./styles/background.css";
+@import "./styles/flip.css";
+
+@import "./styles/loadingMark.css";
+@import "./styles/loader.css";
+@import "./styles/typography.css";
+
+/* mobile */
+@import "./styles/mobileLayout.css";
+@import "./styles/mobileHeader.css";
+@import "./styles/mobileCards.css";
+
+/* =========================
+   Global theme + reset
+   ========================= */
+
+:root {
+  --bg: #0b1420;
+  --card: #0f1c2b;
+  --card2: #122133;
+  --border: #24364a;
+  --text: #eaf2ff;
+
+  --gap: 10px;
+  --tileGap: 8px;
+
+  --watermark: none;
+  --capW: 6px;
+  --tileTypeScale: 1;
+}
+
+* {
+  box-sizing: border-box;
+}
+
 html,
 body,
 #root {
@@ -8,5 +61,15 @@ body,
 
 body {
   overflow: hidden;
-  background: #0b0f14;
+  background: var(--bg);
+  color: var(--text);
+
+  font-family:
+    ui-sans-serif,
+    system-ui,
+    -apple-system,
+    Segoe UI,
+    Roboto,
+    "Helvetica Neue",
+    Arial;
 }
