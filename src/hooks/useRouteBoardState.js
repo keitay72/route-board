@@ -1,5 +1,3 @@
-// src/hooks/useRouteBoardState.js
-
 import { useEffect, useMemo, useState } from "react";
 
 import { ymdFromIso } from "../utils/dates";
@@ -14,13 +12,7 @@ import {
 } from "../utils/trucks";
 
 /**
- * Central “view model” hook:
- * - All derived computations from API data
- * - Reveal board after first load
- * - Sidebar flipping state (TV only)
- * - Fleetio compare date selection (board date)
- *
- * Keeps App.jsx small and readable.
+ * Derives the board-facing view model from raw API payloads and UI state.
  */
 export function useRouteBoardState({
   company,
@@ -30,13 +22,8 @@ export function useRouteBoardState({
   gridRows = 13,
   sidebarFlipMs = 5000,
 }) {
-  // Reveal board after first data load
-  const [revealBoard, setRevealBoard] = useState(false);
-  useEffect(() => {
-    if (!revealBoard && data) setRevealBoard(true);
-  }, [data, revealBoard]);
+  const revealBoard = Boolean(data);
 
-  // Sidebar flip (TV/Desktop only)
   const [sidebarFace, setSidebarFace] = useState("trucks");
   useEffect(() => {
     if (isMobile) return;
@@ -49,7 +36,6 @@ export function useRouteBoardState({
     return () => clearInterval(t);
   }, [isMobile, revealBoard, sidebarFlipMs]);
 
-  // API payload (normalized)
   const dispatch = useMemo(() => data?.dispatch || [], [data]);
   const unavailable = useMemo(() => data?.unavailableTrucks || [], [data]);
   const shopTrucks = useMemo(() => data?.shopTrucks || [], [data]);
@@ -61,7 +47,6 @@ export function useRouteBoardState({
     [data],
   );
 
-  // Unavailable trucks: sorted + grouped
   const unavailableSorted = useMemo(
     () => sortUnavailableTrucks(unavailable),
     [unavailable],
@@ -71,7 +56,6 @@ export function useRouteBoardState({
     [unavailableSorted],
   );
 
-  // Routes grid items -> fixed slots -> columns
   const items = useMemo(
     () => buildCityGroupedItems(dispatch, gridRows),
     [dispatch, gridRows],
@@ -87,13 +71,11 @@ export function useRouteBoardState({
     [slots, gridCols, gridRows],
   );
 
-  // Assigned trucks set
   const assignedTruckSet = useMemo(
     () => computeAssignedTruckSet(dispatch),
     [dispatch],
   );
 
-  // Available trucks derived from shop list
   const availableTrucks = useMemo(() => {
     return buildAvailableTrucks({
       shopTrucks,
@@ -102,8 +84,6 @@ export function useRouteBoardState({
     });
   }, [shopTrucks, company, assignedTruckSet]);
 
-  // KCD: residential/commercial
-  // MHD: dynamic location groups from sheet/API
   const availGroups = useMemo(() => {
     if (company === "mhd") {
       return groupAvailableTrucksByLocation(availableTrucks);
@@ -111,7 +91,6 @@ export function useRouteBoardState({
     return splitAvailableTrucksByType(availableTrucks);
   }, [company, availableTrucks]);
 
-  // Fleetio compare date (board date)
   const boardDate = useMemo(
     () => ymdFromIso(data?.generatedAt),
     [data?.generatedAt],
@@ -121,18 +100,13 @@ export function useRouteBoardState({
     revealBoard,
     sidebarFace,
 
-    // raw-ish
     dispatch,
     message,
     availableDrivers,
     unavailableDrivers,
     boardDate,
-
-    // routes UI
     items,
     columns,
-
-    // trucks UI
     unavailableSorted,
     groupedTrucks,
     availableTrucks,

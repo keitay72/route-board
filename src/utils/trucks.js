@@ -33,15 +33,12 @@ export function buildAvailableTrucks({
     if (assignedTruckSet?.has(truck)) continue;
     if (norm(row?.status) !== "available") continue;
 
-    // MHD: include ALL available trucks, regardless of truck number prefix
-    // and group later by dynamic sheet/API location label
     if (company === "mhd") {
       const location = String(row?.location ?? "").trim();
       out.push({ truck, location });
       continue;
     }
 
-    // KCD: keep existing behavior
     if (!truck.startsWith(prefix)) continue;
 
     const type = String(row?.type ?? "").trim();
@@ -73,13 +70,6 @@ export function splitAvailableTrucksByType(availableTrucks) {
   return { residential, commercial };
 }
 
-// MHD: dynamic groups from the sheet's Location column.
-// Returns an array like:
-// [
-//   ["Central", ["616", "619"]],
-//   ["North", ["602", "603"]],
-//   ["Service Truck", ["644"]]
-// ]
 export function groupAvailableTrucksByLocation(availableTrucks) {
   const groups = new Map();
 

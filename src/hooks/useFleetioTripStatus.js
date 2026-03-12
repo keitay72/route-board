@@ -1,5 +1,3 @@
-// src/hooks/useFleetioTripStatus.js
-
 import { useEffect, useState } from "react";
 
 const REFRESH_MS = 30000;

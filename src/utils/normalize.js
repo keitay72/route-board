@@ -5,7 +5,11 @@ export function norm(v) {
 }
 
 export function normTruck(v) {
-  const s = String(v ?? "").trim();
-  const m = s.match(/\d{2,4}/);
-  return m ? m[0] : "";
+  const raw = String(v ?? "").trim().toLowerCase();
+  const compact = raw.replace(/[^a-z0-9]/g, "");
+
+  if (!compact) return "";
+  if (/^\d+$/.test(compact)) return String(parseInt(compact, 10));
+
+  return compact;
 }

@@ -1,10 +1,6 @@
-// src/components/RouteTile.jsx
-
-// src/components/RouteTile.jsx
-
 import { norm, normTruck } from "../utils/normalize";
 
-function normDriverKey(value) {
+function normalizeDriverKey(value) {
   return String(value || "")
     .trim()
     .toLowerCase()
@@ -12,14 +8,34 @@ function normDriverKey(value) {
 }
 
 function buildTripKey(driverFullName, truck) {
-  const d = normDriverKey(driverFullName);
-  const t = normTruck(truck);
+  const d = normalizeDriverKey(driverFullName);
+  const truckKey = normTruck(truck);
 
-  if (!d || !t) return "";
+  if (!d || !truckKey) return "";
 
-  // normalize "0846" and "846" to the same key
-  const truckKey = String(parseInt(t, 10));
   return `${d}__${truckKey}`;
+}
+
+function getPostClass({ isComplete, postEffectiveOk, postWarn }) {
+  if (postEffectiveOk) return "isOk";
+  if (postWarn) return "isWarn";
+  if (isComplete) return "isLate";
+  return "isMissing";
+}
+
+function buildTitle({ item, displayDriver, matchDriver, tripKey, trip, isComplete }) {
+  return [
+    item?.route ? `Route ${item.route}` : "Route",
+    displayDriver ? `Display ${displayDriver}` : "Display —",
+    matchDriver ? `Match ${matchDriver}` : "Match —",
+    item?.truck ? `Truck ${item.truck}` : "Truck —",
+    `key=${tripKey || "—"}`,
+    `pre=${trip?.pretrip ?? "—"}`,
+    `post=${trip?.posttrip ?? "—"}`,
+    `eff=${trip?.posttripEffective ?? "—"}`,
+    `warn=${trip?.posttripWarning ?? "—"}`,
+    isComplete ? "Complete" : "Not Complete",
+  ].join(" • ");
 }
 
 export default function RouteTile({
@@ -29,43 +45,17 @@ export default function RouteTile({
   isMobile = false,
 }) {
   const isComplete = norm(item?.status) === "complete";
-
-  // Display name on tile = nickname (or whatever board sends as driver)
   const displayDriver = item?.driver || "";
-
-  // Match name for Fleetio = full name from sheet
   const matchDriver = item?.driverFullName || displayDriver;
 
   const tripKey = buildTripKey(matchDriver, item?.truck);
   const trip = tripKey ? (fleetioTrips?.[tripKey] ?? null) : null;
 
   const preOk = trip?.pretrip === "ok";
-  const postOk = trip?.posttrip === "ok";
   const postEffectiveOk = trip?.posttripEffective === "ok";
-
-  // Left end cap (LEC)
-  // green if matching pre exists, else red
+  const postWarn = trip?.posttripWarning === "warn";
   const preClass = preOk ? "isOk" : "isLate";
-
-  // Right end cap (REC)
-  // Not complete:
-  // - green = valid post
-  // - yellow = invalid post exists
-  // - gray = no post
-  //
-  // Complete:
-  // - green = valid post
-  // - yellow = invalid post exists
-  // - red = no valid post exists
-  let postClass = "isMissing";
-
-  if (postEffectiveOk) {
-    postClass = "isOk";
-  } else if (postOk) {
-    postClass = "isWarn";
-  } else if (isComplete) {
-    postClass = "isLate";
-  }
+  const postClass = getPostClass({ isComplete, postEffectiveOk, postWarn });
 
   const missingDriver = !norm(displayDriver) || norm(displayDriver) === "open";
   const missingTruck = !norm(item?.truck) || norm(item?.truck) === "open";
@@ -74,17 +64,14 @@ export default function RouteTile({
     !isComplete && (missingDriver || missingTruck) ? "routeAlert" : "";
   const completeClass = isComplete ? "routeComplete" : "";
 
-  const title = [
-    item?.route ? `Route ${item.route}` : "Route",
-    displayDriver ? `Display ${displayDriver}` : "Display —",
-    matchDriver ? `Match ${matchDriver}` : "Match —",
-    item?.truck ? `Truck ${item.truck}` : "Truck —",
-    `key=${tripKey || "—"}`,
-    `pre=${trip?.pretrip ?? "—"}`,
-    `post=${trip?.posttrip ?? "—"}`,
-    `eff=${trip?.posttripEffective ?? "—"}`,
-    isComplete ? "Complete" : "Not Complete",
-  ].join(" • ");
+  const title = buildTitle({
+    item,
+    displayDriver,
+    matchDriver,
+    tripKey,
+    trip,
+    isComplete,
+  });
 
   return (
     <div

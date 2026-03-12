@@ -1,11 +1,16 @@
-// src/components/LoadingMark.jsx
-
-// ------------------------------
-// Loader SVG (truck)
-// ------------------------------
 function wheel(cx, cy, r, spin) {
   return (
-    <g className={`wheel ${spin ? "wheelSpin" : ""}`}>
+    <g
+      className={`wheel ${spin ? "wheelSpin" : ""}`}
+      style={
+        spin
+          ? {
+              transformOrigin: `${cx}px ${cy}px`,
+              transformBox: "view-box",
+            }
+          : undefined
+      }
+    >
       <circle cx={cx} cy={cy} r={r} fill="#111418" />
       <circle cx={cx} cy={cy} r={r - 18} fill="url(#rimGrad)" />
       <circle cx={cx} cy={cy} r="6" fill="#7d8794" />
@@ -118,7 +123,14 @@ export default function LoadingMark({ variant, tagline }) {
               />
             </g>
 
-            <g id="arm">
+            <g
+              id="arm"
+              className="loaderArm"
+              style={{
+                transformOrigin: "458px 172px",
+                transformBox: "view-box",
+              }}
+            >
               <rect
                 x="440"
                 y="35"

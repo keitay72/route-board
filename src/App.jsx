@@ -1,5 +1,3 @@
-// src/App.jsx
-
 import { useMemo } from "react";
 
 import { getCompanyConfig, getCompanyFromUrl } from "./company";
@@ -40,7 +38,6 @@ export default function App() {
 
   useFitDriverText(vm.revealBoard, `${data?.generatedAt || ""}|${tileScale}`);
 
-  // Fleetio trip status now returns a driverFullName+truck keyed map
   const { trips: fleetioTrips, error: fleetioError } = useFleetioTripStatus(
     company,
     vm.boardDate,

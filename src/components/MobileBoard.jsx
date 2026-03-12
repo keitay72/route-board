@@ -1,5 +1,3 @@
-// src/components/MobileBoard.jsx
-
 import { useMemo } from "react";
 import { formatGeneratedAtNoTime } from "../utils/format";
 import RouteTile from "./RouteTile";
@@ -89,7 +87,6 @@ export default function MobileBoard({
             </div>
           </section>
 
-          {/* Trucks Available */}
           <section className="card mCard">
             <div className="cardTitleRow">
               <div className="cardTitle">Trucks Available</div>
@@ -129,7 +126,6 @@ export default function MobileBoard({
             </div>
           </section>
 
-          {/* Trucks Unavailable */}
           <section className="card mCard">
             <div className="cardTitleRow">
               <div className="cardTitle">Trucks Unavailable</div>
@@ -155,7 +151,6 @@ export default function MobileBoard({
             </div>
           </section>
 
-          {/* Drivers Available */}
           <section className="card mCard">
             <div className="cardTitleRow">
               <div className="cardTitle">Drivers Available</div>
@@ -176,7 +171,6 @@ export default function MobileBoard({
             </div>
           </section>
 
-          {/* Drivers Unavailable */}
           <section className="card mCard">
             <div className="cardTitleRow">
               <div className="cardTitle">Drivers Unavailable</div>

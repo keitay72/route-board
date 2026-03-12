@@ -1,5 +1,3 @@
-// src/hooks/useViewportTileScale.js
-
 import { useEffect, useState } from "react";
 
 export function useViewportTileScale() {

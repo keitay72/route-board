@@ -1,31 +1,29 @@
-// netlify/functions/fleetio-trip-status.js
+const COMPANY_KCD = "kcd";
+const COMPANY_MHD = "mhd";
+const FLEETIO_FORMS_URL =
+  "https://secure.fleetio.com/api/v1/submitted_inspection_forms";
+const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
+const FORM_TYPE_PRE = "pre";
+const FORM_TYPE_POST = "post";
+const STATUS_OK = "ok";
+const STATUS_MISSING = "missing";
+const STATUS_WARN = "warn";
 
-// netlify/functions/fleetio-trip-status.js
-
-export const handler = async (event) => {
+export async function handler(event) {
   try {
     const url = new URL(event.rawUrl);
-
-    const company = (url.searchParams.get("company") || "kcd")
-      .trim()
-      .toLowerCase();
-
+    const company = normalizeCompany(url.searchParams.get("company"));
+    const date = normalizeDate(url.searchParams.get("date"));
     const apiKey = process.env.FLEETIO_API_KEY;
-    const accountToken =
-      company === "mhd"
-        ? process.env.FLEETIO_ACCOUNT_TOKEN_MHD
-        : process.env.FLEETIO_ACCOUNT_TOKEN_KCD;
+    const accountToken = getAccountToken(company);
 
     if (!apiKey || !accountToken) {
       return json(500, { error: "Missing Fleetio env vars on server." });
     }
 
-    const date = url.searchParams.get("date");
-    if (!date || !/^\d{4}-\d{2}-\d{2}$/.test(date)) {
+    if (!DATE_RE.test(date)) {
       return json(400, { error: "Missing/invalid date. Use YYYY-MM-DD." });
     }
-
-    const base = "https://secure.fleetio.com/api/v1/submitted_inspection_forms";
 
     const headers = {
       Authorization: `Token ${apiKey}`,
@@ -33,123 +31,24 @@ export const handler = async (event) => {
       Accept: "application/json",
     };
 
-    const forms = await fetchAllForDate({ base, headers, date });
+    const forms = await fetchAllForDate({ headers, date });
+    const trips = buildTrips(forms, date);
 
-    // Group by exact full driver name + exact truck for exact date
-    const byDriverTruck = new Map();
-
-    for (const [key, entry] of byDriverTruck.entries()) {
-      if (key.includes("benny")) {
-        console.log(
-          "BENNY GROUPED ENTRY",
-          JSON.stringify(
-            {
-              key,
-              driver: entry.driver,
-              truck: entry.truck,
-              preTimes: entry.preTimes,
-              postTimes: entry.postTimes,
-              preForms: entry.preForms,
-              postForms: entry.postForms,
-            },
-            null,
-            2,
-          ),
-        );
-      }
-    }
-
-    for (const f of forms) {
-      const formDate = normalizeDate(f?.date);
-      if (formDate !== date) continue;
-
-      const formType = getFormType(f?.inspection_form?.title);
-      if (!formType) continue;
-
-      const driverName = String(f?.user?.name || "").trim();
-      const driverKey = normalizeDriverKey(driverName);
-
-      const truckName = String(f?.vehicle?.name || "").trim();
-      const truckKey = normalizeTruckKey(truckName);
-
-      if (!driverKey || !truckKey) continue;
-
-      const key = buildTripKey(driverKey, truckKey);
-      const ts = getTimestampMs(f);
-
-      if (!byDriverTruck.has(key)) {
-        byDriverTruck.set(key, {
-          driver: {
-            id: f?.user?.id ?? null,
-            name: driverName,
-            key: driverKey,
-          },
-          truck: {
-            id: f?.vehicle?.id ?? null,
-            name: truckName,
-            key: truckKey,
-          },
-          preTimes: [],
-          postTimes: [],
-          preForms: [],
-          postForms: [],
-        });
-      }
-
-      const entry = byDriverTruck.get(key);
-
-      if (formType === "pre") {
-        entry.preForms.push(f?.id ?? null);
-        if (ts != null) entry.preTimes.push(ts);
-      }
-
-      if (formType === "post") {
-        entry.postForms.push(f?.id ?? null);
-        if (ts != null) entry.postTimes.push(ts);
-      }
-    }
-
-    const trips = {};
-
-    for (const [key, entry] of byDriverTruck.entries()) {
-      const preTimes = entry.preTimes.slice().sort((a, b) => a - b);
-      const postTimes = entry.postTimes.slice().sort((a, b) => a - b);
-
-      const hasPre = entry.preForms.length > 0;
-      const hasPost = entry.postForms.length > 0;
-
-      // A post is valid only if some post timestamp is later than some pre timestamp
-      let hasValidPost = false;
-
-      if (preTimes.length && postTimes.length) {
-        for (const postTs of postTimes) {
-          for (const preTs of preTimes) {
-            if (postTs > preTs) {
-              hasValidPost = true;
-              break;
-            }
-          }
-          if (hasValidPost) break;
-        }
-      }
-
-      trips[key] = {
-        driver: entry.driver,
-        truck: entry.truck,
-        pretrip: hasPre ? "ok" : "missing",
-        posttrip: hasPost ? "ok" : "missing",
-        posttripEffective: hasValidPost ? "ok" : "missing",
-      };
-    }
-
-    return json(200, {
-      date,
-      trips,
-    });
+    return json(200, { date, trips });
   } catch (e) {
     return json(500, { error: String(e?.message || e) });
   }
-};
+}
+
+function normalizeCompany(value) {
+  return String(value || COMPANY_KCD).trim().toLowerCase();
+}
+
+function getAccountToken(company) {
+  return company === COMPANY_MHD
+    ? process.env.FLEETIO_ACCOUNT_TOKEN_MHD
+    : process.env.FLEETIO_ACCOUNT_TOKEN_KCD;
+}
 
 function buildTripKey(driverKey, truckKey) {
   return `${driverKey}__${truckKey}`;
@@ -167,14 +66,13 @@ function normalizeDriverKey(value) {
 }
 
 function normalizeTruckKey(value) {
-  const raw = String(value || "").trim();
-  const digits = raw.replace(/\D/g, "");
+  const raw = String(value || "").trim().toLowerCase();
+  const compact = raw.replace(/[^a-z0-9]/g, "");
 
-  if (digits) {
-    return String(parseInt(digits, 10)); // "0846" -> "846"
-  }
+  if (!compact) return "";
+  if (/^\d+$/.test(compact)) return String(parseInt(compact, 10));
 
-  return raw.toLowerCase();
+  return compact;
 }
 
 function getFormType(title) {
@@ -183,7 +81,7 @@ function getFormType(title) {
     .toLowerCase();
 
   if (s.includes("pre trip") || s.includes("pre-trip") || /\bpre\b/.test(s)) {
-    return "pre";
+    return FORM_TYPE_PRE;
   }
 
   if (
@@ -191,7 +89,7 @@ function getFormType(title) {
     s.includes("post-trip") ||
     /\bpost\b/.test(s)
   ) {
-    return "post";
+    return FORM_TYPE_POST;
   }
 
   return null;
@@ -224,18 +122,135 @@ function json(statusCode, obj) {
   };
 }
 
-async function fetchAllForDate({ base, headers, date }) {
+function createTripEntry(form, driverName, driverKey, truckName, truckKey) {
+  return {
+    driver: {
+      id: form?.user?.id ?? null,
+      name: driverName,
+      key: driverKey,
+    },
+    truck: {
+      id: form?.vehicle?.id ?? null,
+      name: truckName,
+      key: truckKey,
+    },
+    preTimes: [],
+    postTimes: [],
+    preForms: [],
+    postForms: [],
+  };
+}
+
+function addFormToTrip(entry, form, formType) {
+  const timestamp = getTimestampMs(form);
+
+  if (formType === FORM_TYPE_PRE) {
+    entry.preForms.push(form?.id ?? null);
+    if (timestamp != null) entry.preTimes.push(timestamp);
+  }
+
+  if (formType === FORM_TYPE_POST) {
+    entry.postForms.push(form?.id ?? null);
+    if (timestamp != null) entry.postTimes.push(timestamp);
+  }
+}
+
+function hasValidPosttrip(preTimes, postTimes) {
+  if (!preTimes.length || !postTimes.length) return false;
+  return postTimes.some((postTs) => preTimes.some((preTs) => postTs > preTs));
+}
+
+function getPosttripStatus(preTimes, postTimes) {
+  if (!postTimes.length) {
+    return {
+      posttrip: STATUS_MISSING,
+      posttripEffective: STATUS_MISSING,
+      posttripWarning: STATUS_MISSING,
+    };
+  }
+
+  if (!preTimes.length) {
+    return {
+      posttrip: STATUS_MISSING,
+      posttripEffective: STATUS_MISSING,
+      posttripWarning: STATUS_WARN,
+    };
+  }
+
+  const latestPreTime = preTimes[preTimes.length - 1];
+  const hasPostAfterLatestPre = postTimes.some(
+    (postTs) => postTs > latestPreTime,
+  );
+
+  return {
+    posttrip: hasPostAfterLatestPre ? STATUS_OK : STATUS_MISSING,
+    posttripEffective: hasValidPosttrip(preTimes, postTimes)
+      ? STATUS_OK
+      : STATUS_MISSING,
+    posttripWarning: STATUS_MISSING,
+  };
+}
+
+function buildTrips(forms, date) {
+  const groupedTrips = new Map();
+
+  for (const form of forms) {
+    if (normalizeDate(form?.date) !== date) continue;
+
+    const formType = getFormType(form?.inspection_form?.title);
+    if (!formType) continue;
+
+    const driverName = String(form?.user?.name || "").trim();
+    const truckName = String(form?.vehicle?.name || "").trim();
+    const driverKey = normalizeDriverKey(driverName);
+    const truckKey = normalizeTruckKey(truckName);
+
+    if (!driverKey || !truckKey) continue;
+
+    const tripKey = buildTripKey(driverKey, truckKey);
+    let entry = groupedTrips.get(tripKey);
+
+    if (!entry) {
+      entry = createTripEntry(form, driverName, driverKey, truckName, truckKey);
+      groupedTrips.set(tripKey, entry);
+    }
+
+    addFormToTrip(entry, form, formType);
+  }
+
+  return Object.fromEntries(
+    Array.from(groupedTrips.entries(), ([tripKey, entry]) => {
+      const preTimes = entry.preTimes.slice().sort((a, b) => a - b);
+      const postTimes = entry.postTimes.slice().sort((a, b) => a - b);
+      const posttripStatus = getPosttripStatus(preTimes, postTimes);
+
+      return [
+        tripKey,
+        {
+          driver: entry.driver,
+          truck: entry.truck,
+          pretrip: entry.preForms.length ? STATUS_OK : STATUS_MISSING,
+          posttrip: posttripStatus.posttrip,
+          posttripEffective: posttripStatus.posttripEffective,
+          posttripWarning: posttripStatus.posttripWarning,
+        },
+      ];
+    }),
+  );
+}
+
+async function fetchAllForDate({ headers, date }) {
   const PER_PAGE = 50;
   const target = Date.parse(date);
 
   if (Number.isNaN(target)) return [];
 
-  let records = [];
+  const records = [];
   let next = null;
   let sawTargetDate = false;
 
   for (let i = 0; i < 200; i++) {
-    const u = new URL(base);
+    const u = new URL(FLEETIO_FORMS_URL);
     u.searchParams.set("per_page", String(PER_PAGE));
     if (next) u.searchParams.set("start_cursor", next);
 
@@ -277,22 +292,6 @@ async function fetchAllForDate({ base, headers, date }) {
     next = j?.next_cursor || null;
     if (!next) break;
   }
-
-  const counts = { pre: 0, post: 0, other: 0 };
-
-  for (const f of forms) {
-    const t = getFormType(f?.inspection_form?.title);
-    if (t === "pre") counts.pre++;
-    else if (t === "post") counts.post++;
-    else counts.other++;
-  }
-
-  console.log("INSPECTION BREAKDOWN", counts);
-
-  console.log("FLEETIO FINAL COUNT", {
-    date,
-    totalRecordsCollected: records.length,
-  });
 
   return records;
 }

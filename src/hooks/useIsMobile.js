@@ -1,21 +1,19 @@
-// src/hooks/useIsMobile.js
-
 import { useEffect, useState } from "react";
+
+const MOBILE_MEDIA_QUERY = "(max-width: 900px)";
 
 export function useIsMobile() {
   const [isMobile, setIsMobile] = useState(() => {
     if (typeof window === "undefined") return false;
-    return window.matchMedia("(max-width: 900px)").matches;
+    return window.matchMedia(MOBILE_MEDIA_QUERY).matches;
   });
 
   useEffect(() => {
-    const m = window.matchMedia("(max-width: 900px)");
+    const m = window.matchMedia(MOBILE_MEDIA_QUERY);
     const onChange = () => setIsMobile(m.matches);
 
     if (m.addEventListener) m.addEventListener("change", onChange);
     else m.addListener(onChange);
-
-    setIsMobile(m.matches);
 
     return () => {
       if (m.removeEventListener) m.removeEventListener("change", onChange);

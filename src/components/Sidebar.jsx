@@ -1,5 +1,3 @@
-// src/components/Sidebar.jsx
-
 import CommaList from "./CommaList";
 
 export default function Sidebar({
@@ -13,19 +11,9 @@ export default function Sidebar({
   unavailableDrivers,
 }) {
   const isMhd = String(company || "").toLowerCase() === "mhd";
-
-  // KCD shape:
-  // { residential: [...], commercial: [...] }
   const safeGroups = !Array.isArray(availGroups) ? availGroups || {} : {};
   const residential = safeGroups.residential || [];
   const commercial = safeGroups.commercial || [];
-
-  // MHD shape:
-  // [
-  //   ["Central", ["616", "619"]],
-  //   ["North", ["602", "603"]],
-  //   ["Service Truck", ["644"]]
-  // ]
   const locationGroups = Array.isArray(availGroups) ? availGroups : [];
 
   return (
@@ -36,7 +24,6 @@ export default function Sidebar({
             sidebarFace === "drivers" ? "isFlipped" : ""
           }`}
         >
-          {/* FRONT: trucks */}
           <div className="sidebarFace sidebarFront">
             <div className="card">
               <div className="cardTitleRow">
@@ -137,7 +124,6 @@ export default function Sidebar({
             </div>
           </div>
 
-          {/* BACK: drivers */}
           <div className="sidebarFace sidebarBack">
             <div className="card">
               <div className="cardTitleRow">

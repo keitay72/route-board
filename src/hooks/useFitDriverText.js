@@ -1,5 +1,3 @@
-// src/hooks/useFitDriverText.js
-
 import { useEffect } from "react";
 
 export function useFitDriverText(enabled, rerunKey) {
