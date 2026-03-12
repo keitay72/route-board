@@ -1,14 +1,7 @@
-import { norm, normTruck } from "../utils/normalize";
-
-function normalizeDriverKey(value) {
-  return String(value || "")
-    .trim()
-    .toLowerCase()
-    .replace(/\s+/g, " ");
-}
+import { norm, normDriverName, normTruck } from "../utils/normalize";
 
 function buildTripKey(driverFullName, truck) {
-  const d = normalizeDriverKey(driverFullName);
+  const d = normDriverName(driverFullName);
   const truckKey = normTruck(truck);
 
   if (!d || !truckKey) return "";
@@ -33,7 +26,6 @@ function buildTitle({ item, displayDriver, matchDriver, tripKey, trip, isComplet
     `pre=${trip?.pretrip ?? "—"}`,
     `post=${trip?.posttrip ?? "—"}`,
     `eff=${trip?.posttripEffective ?? "—"}`,
-    `warn=${trip?.posttripWarning ?? "—"}`,
     isComplete ? "Complete" : "Not Complete",
   ].join(" • ");
 }

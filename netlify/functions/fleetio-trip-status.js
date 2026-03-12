@@ -8,6 +8,10 @@ const FORM_TYPE_POST = "post";
 const STATUS_OK = "ok";
 const STATUS_MISSING = "missing";
 const STATUS_WARN = "warn";
+const DRIVER_NAME_ALIASES = new Map([
+  ["chris strouhal", "chris strohoul"],
+  ["chris strohoul", "chris strohoul"],
+]);
 
 export async function handler(event) {
   try {
@@ -59,10 +63,23 @@ function normalizeDate(value) {
 }
 
 function normalizeDriverKey(value) {
-  return String(value || "")
+  const normalized = String(value || "")
     .trim()
     .toLowerCase()
     .replace(/\s+/g, " ");
+
+  return DRIVER_NAME_ALIASES.get(normalized) || normalized;
+}
+
+function getDriverAliases(value) {
+  const normalized = normalizeDriverKey(value);
+  if (!normalized) return [];
+
+  const aliases = new Set([normalized]);
+  const [firstName] = normalized.split(" ");
+  if (firstName) aliases.add(firstName);
+
+  return [...aliases];
 }
 
 function normalizeTruckKey(value) {
@@ -218,25 +235,32 @@ function buildTrips(forms, date) {
     addFormToTrip(entry, form, formType);
   }
 
-  return Object.fromEntries(
-    Array.from(groupedTrips.entries(), ([tripKey, entry]) => {
-      const preTimes = entry.preTimes.slice().sort((a, b) => a - b);
-      const postTimes = entry.postTimes.slice().sort((a, b) => a - b);
-      const posttripStatus = getPosttripStatus(preTimes, postTimes);
+  const trips = {};
 
-      return [
-        tripKey,
-        {
-          driver: entry.driver,
-          truck: entry.truck,
-          pretrip: entry.preForms.length ? STATUS_OK : STATUS_MISSING,
-          posttrip: posttripStatus.posttrip,
-          posttripEffective: posttripStatus.posttripEffective,
-          posttripWarning: posttripStatus.posttripWarning,
-        },
-      ];
-    }),
-  );
+  for (const [tripKey, entry] of groupedTrips.entries()) {
+    const preTimes = entry.preTimes.slice().sort((a, b) => a - b);
+    const postTimes = entry.postTimes.slice().sort((a, b) => a - b);
+    const posttripStatus = getPosttripStatus(preTimes, postTimes);
+    const trip = {
+      driver: entry.driver,
+      truck: entry.truck,
+      pretrip: entry.preForms.length ? STATUS_OK : STATUS_MISSING,
+      posttrip: posttripStatus.posttrip,
+      posttripEffective: posttripStatus.posttripEffective,
+      posttripWarning: posttripStatus.posttripWarning,
+    };
+
+    trips[tripKey] = trip;
+
+    for (const driverAlias of getDriverAliases(entry.driver.name)) {
+      const aliasKey = buildTripKey(driverAlias, entry.truck.key);
+      if (!trips[aliasKey]) {
+        trips[aliasKey] = trip;
+      }
+    }
+  }
+
+  return trips;
 }
 
 async function fetchAllForDate({ headers, date }) {

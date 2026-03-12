@@ -1,7 +1,21 @@
+const DRIVER_NAME_ALIASES = new Map([
+  ["chris strouhal", "chris strohoul"],
+  ["chris strohoul", "chris strohoul"],
+]);
+
 export function norm(v) {
   return String(v ?? "")
     .trim()
     .toLowerCase();
+}
+
+export function normDriverName(v) {
+  const normalized = String(v ?? "")
+    .trim()
+    .toLowerCase()
+    .replace(/\s+/g, " ");
+
+  return DRIVER_NAME_ALIASES.get(normalized) || normalized;
 }
 
 export function normTruck(v) {

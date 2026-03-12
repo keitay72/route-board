@@ -35,6 +35,10 @@ export function getABWeekLabel(dateObj) {
 export function ymdFromIso(iso) {
   if (!iso) return "";
   try {
+    const raw = String(iso).trim();
+    const directMatch = raw.match(/^(\d{4}-\d{2}-\d{2})/);
+    if (directMatch) return directMatch[1];
+
     const d = new Date(iso);
     if (Number.isNaN(d.getTime())) return "";
     const y = d.getFullYear();
