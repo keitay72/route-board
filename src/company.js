@@ -32,7 +32,6 @@ export function getCompanyConfig(company) {
       apiUrl: mhdUrl,
       logoSrc: "/mhd-logo.png",
       logoAlt: "Mountain High Disposal",
-      watermark: 'url("/mhd-logo.png")',
       copyright: "Mountain High Disposal LLC",
       loaderVariant: "mhd",
     };
@@ -45,7 +44,6 @@ export function getCompanyConfig(company) {
     apiUrl: kcdUrl,
     logoSrc: "/kc-logo.png",
     logoAlt: "KC Disposal",
-    watermark: 'url("/kcd-watermark.png")',
     copyright: "KC Disposal LLC",
     loaderVariant: "kc",
   };

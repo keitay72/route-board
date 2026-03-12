@@ -46,7 +46,6 @@ export default function App() {
   const mergedError = [error, fleetioError].filter(Boolean).join(" | ");
 
   const stageStyle = {
-    "--watermark": cfg.watermark,
     "--tileTypeScale": tileScale,
   };
 
