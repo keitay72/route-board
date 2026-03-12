@@ -1,3 +1,5 @@
+// src/components/HeaderBar.jsx
+
 import { formatGeneratedAt } from "../utils/format";
 
 export default function HeaderBar({ cfg, generatedAt }) {

@@ -1,3 +1,5 @@
+// src/components/TvBoard.jsx
+
 import { useMemo } from "react";
 import HeaderBar from "./HeaderBar";
 import Sidebar from "./Sidebar";

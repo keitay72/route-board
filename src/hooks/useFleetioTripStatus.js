@@ -1,40 +1,57 @@
+// src/hooks/useFleetioTripStatus.js
+
 import { useEffect, useState } from "react";
 
-const REFRESH_MS = 15000;
+const REFRESH_MS = 30000;
 
 export function useFleetioTripStatus(company, dateYmd) {
-  const [trucks, setTrucks] = useState({});
+  const [trips, setTrips] = useState({});
   const [error, setError] = useState("");
 
   useEffect(() => {
-    if (!dateYmd) return;
+    if (!dateYmd) {
+      setTrips({});
+      setError("");
+      return;
+    }
 
     let cancelled = false;
-    let timer;
+    let timerId = null;
 
     async function load() {
       try {
         setError("");
+
         const res = await fetch(
           `/.netlify/functions/fleetio-trip-status?company=${encodeURIComponent(company)}&date=${encodeURIComponent(dateYmd)}`,
           { cache: "no-store" },
         );
-        if (!res.ok) throw new Error(`Fleetio fn HTTP ${res.status}`);
+
+        if (!res.ok) {
+          throw new Error(`Fleetio fn HTTP ${res.status}`);
+        }
+
         const json = await res.json();
-        if (!cancelled) setTrucks(json?.trucks || {});
+
+        if (!cancelled) {
+          setTrips(json?.trips || {});
+        }
       } catch (e) {
-        if (!cancelled) setError(String(e?.message || e));
+        if (!cancelled) {
+          setTrips({});
+          setError(String(e?.message || e));
+        }
       }
     }
 
     load();
-    timer = setInterval(load, REFRESH_MS);
+    timerId = window.setInterval(load, REFRESH_MS);
 
     return () => {
       cancelled = true;
-      clearInterval(timer);
+      if (timerId) window.clearInterval(timerId);
     };
   }, [company, dateYmd]);
 
-  return { trucks, error };
+  return { trips, error };
 }

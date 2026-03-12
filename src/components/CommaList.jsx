@@ -1,3 +1,5 @@
+// src/components/CommaList.jsx
+
 export default function CommaList({ items, keyPrefix }) {
   if (!items || items.length === 0) return null;
   return (

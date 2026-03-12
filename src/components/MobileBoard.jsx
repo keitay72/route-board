@@ -1,3 +1,5 @@
+// src/components/MobileBoard.jsx
+
 import { useMemo } from "react";
 import { formatGeneratedAtNoTime } from "../utils/format";
 import RouteTile from "./RouteTile";

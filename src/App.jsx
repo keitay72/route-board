@@ -1,4 +1,5 @@
 // src/App.jsx
+
 import { useMemo } from "react";
 
 import { getCompanyConfig, getCompanyFromUrl } from "./company";
@@ -37,20 +38,21 @@ export default function App() {
     sidebarFlipMs: SIDEBAR_FLIP_MS,
   });
 
-  // ✅ Fit driver text after board reveals / data updates
   useFitDriverText(vm.revealBoard, `${data?.generatedAt || ""}|${tileScale}`);
 
-  // Fleetio trips
-  const { trucks: fleetioTrips } = useFleetioTripStatus(company, vm.boardDate);
+  // Fleetio trip status now returns a driverFullName+truck keyed map
+  const { trips: fleetioTrips, error: fleetioError } = useFleetioTripStatus(
+    company,
+    vm.boardDate,
+  );
+
+  const mergedError = [error, fleetioError].filter(Boolean).join(" | ");
 
   const stageStyle = {
     "--watermark": cfg.watermark,
     "--tileTypeScale": tileScale,
   };
 
-  // =========================
-  // MOBILE
-  // =========================
   if (isMobile) {
     return (
       <div className="flipStage" style={stageStyle}>
@@ -69,7 +71,7 @@ export default function App() {
               cfg={cfg}
               data={data}
               loading={loading}
-              error={error}
+              error={mergedError}
               items={vm.items}
               unavailableSorted={vm.unavailableSorted}
               groupedTrucks={vm.groupedTrucks}
@@ -85,9 +87,6 @@ export default function App() {
     );
   }
 
-  // =========================
-  // TV / DESKTOP
-  // =========================
   return (
     <div className="flipStage" style={stageStyle}>
       <div className={`flipCard ${vm.revealBoard ? "isRevealed" : ""}`}>
@@ -106,7 +105,7 @@ export default function App() {
             company={company}
             data={data}
             loading={loading}
-            error={error}
+            error={mergedError}
             columns={vm.columns}
             sidebarFace={vm.sidebarFace}
             availableTrucks={vm.availableTrucks}

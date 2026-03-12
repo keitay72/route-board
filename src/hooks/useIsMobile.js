@@ -1,3 +1,5 @@
+// src/hooks/useIsMobile.js
+
 import { useEffect, useState } from "react";
 
 export function useIsMobile() {

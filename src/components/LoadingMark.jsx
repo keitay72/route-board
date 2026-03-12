@@ -1,4 +1,4 @@
-// LoadingMark.jsx
+// src/components/LoadingMark.jsx
 
 // ------------------------------
 // Loader SVG (truck)
