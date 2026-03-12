@@ -45,7 +45,7 @@ export function getCompanyConfig(company) {
     apiUrl: kcdUrl,
     logoSrc: "/kc-logo.png",
     logoAlt: "KC Disposal",
-    watermark: 'url("/kc-watermark.png")',
+    watermark: 'url("/kcd-watermark.png")',
     copyright: "KC Disposal LLC",
     loaderVariant: "kc",
   };
