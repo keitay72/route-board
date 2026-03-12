@@ -19,15 +19,11 @@ export function getCompanyConfig(company) {
   const kcdUrl = import.meta.env.VITE_ROUTEBOARD_API_URL_KCD;
   const mhdUrl = import.meta.env.VITE_ROUTEBOARD_API_URL_MHD;
 
-  const base = {
-    company,
-    loaderTagline: "Please excuse the wait, we're still talking trash.",
-  };
+  const loaderTagline = "Please excuse the wait, we're still talking trash.";
 
   if (company === "mhd") {
     return {
-      ...base,
-      displayName: "Mountain High Disposal",
+      loaderTagline,
       title: "MOUNTAIN HIGH DISPOSAL ROUTE BOARD",
       apiUrl: mhdUrl,
       logoSrc: "/mhd-logo.png",
@@ -38,8 +34,7 @@ export function getCompanyConfig(company) {
   }
 
   return {
-    ...base,
-    displayName: "KC Disposal",
+    loaderTagline,
     title: "",
     apiUrl: kcdUrl,
     logoSrc: "/kc-logo.png",

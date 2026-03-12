@@ -112,7 +112,6 @@ export default function App() {
             unavailableDrivers={vm.unavailableDrivers}
             message={vm.message}
             fleetioTrips={fleetioTrips}
-            tileScale={tileScale}
           />
         </div>
       </div>

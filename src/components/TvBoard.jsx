@@ -1,4 +1,3 @@
-import { useMemo } from "react";
 import HeaderBar from "./HeaderBar";
 import Sidebar from "./Sidebar";
 import RouteTile from "./RouteTile";
@@ -13,8 +12,6 @@ export default function TvBoard({
   sidebarFace,
   availableTrucks,
   availGroups,
-  residential,
-  commercial,
   unavailableSorted,
   groupedTrucks,
   availableDrivers,
@@ -22,15 +19,6 @@ export default function TvBoard({
   message,
   fleetioTrips,
 }) {
-  const safeAvailGroups = useMemo(() => {
-    if (availGroups) return availGroups;
-
-    return {
-      residential: residential || [],
-      commercial: commercial || [],
-    };
-  }, [availGroups, residential, commercial]);
-
   return (
     <div className="layout">
       <HeaderBar cfg={cfg} generatedAt={data?.generatedAt} />
@@ -85,7 +73,7 @@ export default function TvBoard({
       <Sidebar
         company={company}
         sidebarFace={sidebarFace}
-        availGroups={safeAvailGroups}
+        availGroups={availGroups}
         availableTrucksCount={availableTrucks?.length || 0}
         unavailableSortedCount={unavailableSorted?.length || 0}
         groupedTrucks={groupedTrucks}
