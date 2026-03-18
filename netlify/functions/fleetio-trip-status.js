@@ -8,10 +8,13 @@ const FORM_TYPE_POST = "post";
 const STATUS_OK = "ok";
 const STATUS_MISSING = "missing";
 const STATUS_WARN = "warn";
+const RESPONSE_CACHE_TTL_SECONDS = 60;
+const RESPONSE_CACHE_MAX_AGE_MS = RESPONSE_CACHE_TTL_SECONDS * 1000;
 const DRIVER_NAME_ALIASES = new Map([
   ["chris strouhal", "chris strohoul"],
   ["chris strohoul", "chris strohoul"],
 ]);
+const responseCache = new Map();
 
 export async function handler(event) {
   try {
@@ -29,6 +32,12 @@ export async function handler(event) {
       return json(400, { error: "Missing/invalid date. Use YYYY-MM-DD." });
     }
 
+    const cacheKey = `${company}:${date}`;
+    const cached = responseCache.get(cacheKey);
+    if (cached && cached.expiresAt > Date.now()) {
+      return json(200, cached.body);
+    }
+
     const headers = {
       Authorization: `Token ${apiKey}`,
       "Account-Token": accountToken,
@@ -37,8 +46,14 @@ export async function handler(event) {
 
     const forms = await fetchAllForDate({ headers, date });
     const trips = buildTrips(forms, date);
+    const body = { date, trips };
 
-    return json(200, { date, trips });
+    responseCache.set(cacheKey, {
+      body,
+      expiresAt: Date.now() + RESPONSE_CACHE_MAX_AGE_MS,
+    });
+
+    return json(200, body);
   } catch (e) {
     return json(500, { error: String(e?.message || e) });
   }
@@ -133,7 +148,9 @@ function json(statusCode, obj) {
     statusCode,
     headers: {
       "Content-Type": "application/json",
-      "Cache-Control": "no-store",
+      "Cache-Control": "public, max-age=0, must-revalidate",
+      "Netlify-CDN-Cache-Control":
+        `public, durable, max-age=${RESPONSE_CACHE_TTL_SECONDS}, stale-while-revalidate=300`,
     },
     body: JSON.stringify(obj),
   };
