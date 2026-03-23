@@ -40,7 +40,7 @@ export default function Sidebar({
           </div>
           <div className="railBody singleList">
             {availableDrivers.length === 0 ? (
-              <div className="empty">No available drivers.</div>
+              <div className="empty">All drivers are assigned.</div>
             ) : (
               <CommaList items={availableDrivers} keyPrefix="driver-ready" />
             )}
