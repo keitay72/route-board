@@ -82,6 +82,21 @@ The active company is resolved in this order:
 
 The Netlify function at `netlify/functions/fleetio-trip-status.js` fetches submitted inspection forms from Fleetio for the board date and builds a driver-and-truck keyed trip-status map.
 
+Fleetio lookups run only during configured operational windows:
+
+- `4:00 AM` to `6:00 PM`
+- Monday through Friday
+- Plus the Saturday of any week where one of these holidays falls on a weekday:
+- `New Year's Day`
+- `Memorial Day`
+- `Independence Day`
+- `Labor Day`
+- `Thanksgiving Day`
+- `Christmas Day`
+- Plus any extra Saturdays listed in the Fleetio schedule environment variables for special exceptions
+
+When Fleetio is outside operational hours, the frontend skips polling and the Netlify function returns an empty trip map as a backstop.
+
 Current trip-cap behavior:
 
 - Left cap green: matching pre-trip found
@@ -98,7 +113,7 @@ Truck identifiers are normalized so numeric values like `0846` and `846` match, 
 2. The app reads the correct company API URL from environment variables.
 3. Route board data is fetched and normalized on a 15-second refresh cycle.
 4. The board date is derived from `generatedAt`.
-5. Fleetio trip status is fetched for the active company and board date.
+5. Fleetio trip status is fetched for the active company and board date during Fleetio operational hours.
 6. Route data and Fleetio status are merged in the UI.
 
 ## Expected Route Board Payload
@@ -177,18 +192,33 @@ Set these in `.env.local` for local development or in Netlify environment settin
 ```bash
 VITE_ROUTEBOARD_API_URL_KCD=
 VITE_ROUTEBOARD_API_URL_MHD=
+VITE_FLEETIO_EXTRA_SATURDAYS=
+VITE_FLEETIO_TIME_ZONE=
 FLEETIO_API_KEY=
 FLEETIO_ACCOUNT_TOKEN_KCD=
 FLEETIO_ACCOUNT_TOKEN_MHD=
+FLEETIO_EXTRA_SATURDAYS=
+FLEETIO_TIME_ZONE=
 ```
 
 ### Variable Notes
 
 - `VITE_ROUTEBOARD_API_URL_KCD`: Route board API URL for KC Disposal
 - `VITE_ROUTEBOARD_API_URL_MHD`: Route board API URL for Mountain High Disposal
+- `VITE_FLEETIO_EXTRA_SATURDAYS`: Optional comma-separated `YYYY-MM-DD` list of extra operational Saturdays for frontend polling beyond the built-in holiday schedule
+- `VITE_FLEETIO_TIME_ZONE`: Optional IANA timezone for Fleetio operational hours in the frontend. Defaults to `America/Chicago`
 - `FLEETIO_API_KEY`: Fleetio API token used by the serverless function
 - `FLEETIO_ACCOUNT_TOKEN_KCD`: Fleetio account token for KC Disposal
 - `FLEETIO_ACCOUNT_TOKEN_MHD`: Fleetio account token for Mountain High Disposal
+- `FLEETIO_EXTRA_SATURDAYS`: Optional comma-separated `YYYY-MM-DD` list of extra operational Saturdays for the Netlify function beyond the built-in holiday schedule
+- `FLEETIO_TIME_ZONE`: Optional IANA timezone for Fleetio operational hours in the Netlify function. Defaults to `America/Chicago`
+
+Example override:
+
+```bash
+VITE_FLEETIO_EXTRA_SATURDAYS=2026-05-23,2026-07-04,2026-09-05
+FLEETIO_EXTRA_SATURDAYS=2026-05-23,2026-07-04,2026-09-05
+```
 
 ## Scripts
 
@@ -227,6 +257,9 @@ public/
 - TV layout uses a fixed 5 x 13 grid for route placement.
 - Mobile layout shows the same data in stacked cards.
 - The board date is derived from `generatedAt`, which also drives Fleetio lookups.
+- Fleetio polling runs on a 15-minute interval during active hours only.
+- Fleetio responses are cached for 15 minutes by the Netlify function.
+- Fleetio active hours default to `4:00 AM` through `6:00 PM`, Monday through Friday, plus built-in holiday Saturdays and any configured extra Saturdays.
 - Missing company API URLs will surface a frontend error asking for the correct env configuration.
 
 ## Future README Additions You May Want

@@ -1,3 +1,8 @@
+import {
+  getFleetioOperationalStatus,
+  parseExtraOperationalSaturdays,
+} from "../../src/utils/fleetioSchedule.js";
+
 const COMPANY_KCD = "kcd";
 const COMPANY_MHD = "mhd";
 const FLEETIO_FORMS_URL =
@@ -8,8 +13,13 @@ const FORM_TYPE_POST = "post";
 const STATUS_OK = "ok";
 const STATUS_MISSING = "missing";
 const STATUS_WARN = "warn";
-const RESPONSE_CACHE_TTL_SECONDS = 60;
+const RESPONSE_CACHE_TTL_SECONDS = 15 * 60;
 const RESPONSE_CACHE_MAX_AGE_MS = RESPONSE_CACHE_TTL_SECONDS * 1000;
+const FLEETIO_MAX_PER_PAGE = 100;
+const EXTRA_OPERATIONAL_SATURDAYS = parseExtraOperationalSaturdays(
+  process.env.FLEETIO_EXTRA_SATURDAYS,
+);
+const FLEETIO_TIME_ZONE = process.env.FLEETIO_TIME_ZONE || "America/Chicago";
 const DRIVER_NAME_ALIASES = new Map([
   ["chris strouhal", "chris strohoul"],
   ["chris strohoul", "chris strohoul"],
@@ -38,13 +48,28 @@ export async function handler(event) {
       return json(200, cached.body);
     }
 
+    const operationalStatus = getFleetioOperationalStatus(new Date(), {
+      extraOperationalSaturdays: EXTRA_OPERATIONAL_SATURDAYS,
+      timeZone: FLEETIO_TIME_ZONE,
+    });
+
+    if (!operationalStatus.isOperational) {
+      return json(200, {
+        date,
+        trips: {},
+        skipped: true,
+        reason: "Outside Fleetio operational hours.",
+      });
+    }
+
     const headers = {
       Authorization: `Token ${apiKey}`,
       "Account-Token": accountToken,
       Accept: "application/json",
     };
 
-    const forms = await fetchAllForDate({ headers, date });
+    const startedAt = Date.now();
+    const { forms, stats } = await fetchAllForDate({ headers, date });
     const trips = buildTrips(forms, date);
     const body = { date, trips };
 
@@ -52,6 +77,17 @@ export async function handler(event) {
       body,
       expiresAt: Date.now() + RESPONSE_CACHE_MAX_AGE_MS,
     });
+
+    console.log(
+      JSON.stringify({
+        msg: "fleetio_trip_status_fetch",
+        company,
+        date,
+        durationMs: Date.now() - startedAt,
+        trips: Object.keys(trips).length,
+        ...stats,
+      }),
+    );
 
     return json(200, body);
   } catch (e) {
@@ -281,28 +317,138 @@ function buildTrips(forms, date) {
 }
 
 async function fetchAllForDate({ headers, date }) {
-  const PER_PAGE = 50;
   const target = Date.parse(date);
 
-  if (Number.isNaN(target)) return [];
+  if (Number.isNaN(target)) {
+    return {
+      forms: [],
+      stats: {
+        strategy: "invalid-date",
+        pagesScanned: 0,
+        recordsScanned: 0,
+        recordsMatched: 0,
+      },
+    };
+  }
+
+  try {
+    return await fetchAllForDateFiltered({ headers, date });
+  } catch (error) {
+    if (!shouldFallbackToUnfiltered(error)) throw error;
+
+    const fallback = await fetchAllForDateUnfiltered({ headers, date, target });
+    fallback.stats.fallbackReason = error.message;
+    return fallback;
+  }
+}
+
+function nextDateYmd(date) {
+  const [year, month, day] = String(date).split("-").map(Number);
+  const next = new Date(Date.UTC(year, month - 1, day + 1));
+  const nextYear = next.getUTCFullYear();
+  const nextMonth = String(next.getUTCMonth() + 1).padStart(2, "0");
+  const nextDay = String(next.getUTCDate()).padStart(2, "0");
+
+  return `${nextYear}-${nextMonth}-${nextDay}`;
+}
+
+function shouldFallbackToUnfiltered(error) {
+  const status = Number(error?.statusCode);
+
+  if (!status) return true;
+  if (status === 401 || status === 403) return false;
+  return true;
+}
+
+async function fetchFleetioPage({ headers, next, dateFilterStart, dateFilterEnd }) {
+  const u = new URL(FLEETIO_FORMS_URL);
+  u.searchParams.set("per_page", String(FLEETIO_MAX_PER_PAGE));
+  if (next) u.searchParams.set("start_cursor", next);
+  if (dateFilterStart) {
+    u.searchParams.set("q[submitted_at_gteq]", dateFilterStart);
+  }
+  if (dateFilterEnd) {
+    u.searchParams.set("q[submitted_at_lt]", dateFilterEnd);
+  }
+
+  const res = await fetch(u.toString(), { headers });
+  if (!res.ok) {
+    const text = await res.text().catch(() => "");
+    const error = new Error(`Fleetio HTTP ${res.status} ${text}`.trim());
+    error.statusCode = res.status;
+    throw error;
+  }
+
+  const j = await res.json();
+  const page = Array.isArray(j) ? j : j.records || [];
+
+  return {
+    page,
+    next: j?.next_cursor || null,
+    estimatedRemainingCount: j?.estimated_remaining_count ?? null,
+  };
+}
+
+async function fetchAllForDateFiltered({ headers, date }) {
+  const records = [];
+  const stats = {
+    strategy: "submitted_at-range",
+    pagesScanned: 0,
+    recordsScanned: 0,
+    recordsMatched: 0,
+    estimatedRemainingCount: null,
+  };
+  const nextDate = nextDateYmd(date);
+  let next = null;
+
+  for (let i = 0; i < 200; i++) {
+    const result = await fetchFleetioPage({
+      headers,
+      next,
+      dateFilterStart: date,
+      dateFilterEnd: nextDate,
+    });
+
+    stats.pagesScanned += 1;
+    stats.recordsScanned += result.page.length;
+    stats.estimatedRemainingCount = result.estimatedRemainingCount;
+
+    if (!result.page.length) break;
+
+    for (const r of result.page) {
+      if (normalizeDate(r?.date) === date) {
+        records.push(r);
+      }
+    }
+
+    next = result.next;
+    if (!next) break;
+  }
+
+  stats.recordsMatched = records.length;
+  return { forms: records, stats };
+}
+
+async function fetchAllForDateUnfiltered({ headers, date, target }) {
 
   const records = [];
   let next = null;
   let sawTargetDate = false;
+  const stats = {
+    strategy: "unfiltered-scan",
+    pagesScanned: 0,
+    recordsScanned: 0,
+    recordsMatched: 0,
+    estimatedRemainingCount: null,
+  };
 
   for (let i = 0; i < 200; i++) {
-    const u = new URL(FLEETIO_FORMS_URL);
-    u.searchParams.set("per_page", String(PER_PAGE));
-    if (next) u.searchParams.set("start_cursor", next);
+    const result = await fetchFleetioPage({ headers, next });
+    const page = result.page;
 
-    const res = await fetch(u.toString(), { headers });
-    if (!res.ok) {
-      const text = await res.text().catch(() => "");
-      throw new Error(`Fleetio HTTP ${res.status} ${text}`.trim());
-    }
-
-    const j = await res.json();
-    const page = Array.isArray(j) ? j : j.records || [];
+    stats.pagesScanned += 1;
+    stats.recordsScanned += page.length;
+    stats.estimatedRemainingCount = result.estimatedRemainingCount;
     if (!page.length) break;
 
     for (const r of page) {
@@ -330,9 +476,10 @@ async function fetchAllForDate({ headers, date }) {
       if (hasOlder) break;
     }
 
-    next = j?.next_cursor || null;
+    next = result.next;
     if (!next) break;
   }
 
-  return records;
+  stats.recordsMatched = records.length;
+  return { forms: records, stats };
 }
