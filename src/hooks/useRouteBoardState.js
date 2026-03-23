@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useMemo } from "react";
 
 import { ymdFromIso } from "../utils/dates";
 import { buildCityGroupedItems, toColumns, toFixedSlots } from "../utils/grid";
@@ -17,24 +17,10 @@ import {
 export function useRouteBoardState({
   company,
   data,
-  isMobile,
   gridCols = 5,
   gridRows = 13,
-  sidebarFlipMs = 5000,
 }) {
   const revealBoard = Boolean(data);
-
-  const [sidebarFace, setSidebarFace] = useState("trucks");
-  useEffect(() => {
-    if (isMobile) return;
-    if (!revealBoard) return;
-
-    const t = setInterval(() => {
-      setSidebarFace((prev) => (prev === "trucks" ? "drivers" : "trucks"));
-    }, sidebarFlipMs);
-
-    return () => clearInterval(t);
-  }, [isMobile, revealBoard, sidebarFlipMs]);
 
   const dispatch = useMemo(() => data?.dispatch || [], [data]);
   const unavailable = useMemo(() => data?.unavailableTrucks || [], [data]);
@@ -98,8 +84,6 @@ export function useRouteBoardState({
 
   return {
     revealBoard,
-    sidebarFace,
-
     dispatch,
     message,
     availableDrivers,

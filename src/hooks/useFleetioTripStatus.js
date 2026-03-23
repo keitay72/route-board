@@ -35,12 +35,14 @@ function buildFleetioResponseError(rawText, status) {
 export function useFleetioTripStatus(company, dateYmd) {
   const [trips, setTrips] = useState({});
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
   const lastLoadedAtRef = useRef(0);
 
   useEffect(() => {
     if (!dateYmd) {
       setTrips({});
       setError("");
+      setLoading(false);
       lastLoadedAtRef.current = 0;
       return;
     }
@@ -80,17 +82,20 @@ export function useFleetioTripStatus(company, dateYmd) {
       }
 
       if (!isOperationalNow()) {
+        if (!cancelled) setLoading(false);
         scheduleNextLoad();
         return;
       }
 
       if (hasFreshClientData()) {
+        if (!cancelled) setLoading(false);
         scheduleNextLoad();
         return;
       }
 
       try {
         setError("");
+        setLoading(true);
 
         const res = await fetch(
           `/.netlify/functions/fleetio-trip-status?company=${encodeURIComponent(company)}&date=${encodeURIComponent(dateYmd)}`,
@@ -136,6 +141,7 @@ export function useFleetioTripStatus(company, dateYmd) {
         }
       } finally {
         if (!cancelled) {
+          setLoading(false);
           scheduleNextLoad();
         }
       }
@@ -165,5 +171,5 @@ export function useFleetioTripStatus(company, dateYmd) {
     };
   }, [company, dateYmd]);
 
-  return { trips, error };
+  return { trips, error, loading };
 }

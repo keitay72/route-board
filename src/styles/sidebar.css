@@ -1,86 +1,80 @@
-.availTrucksBody,
-.trucksBody,
-.driversBody {
+.sidebar {
+  grid-area: sidebar;
   min-height: 0;
   overflow: hidden;
 }
 
-/* Groups / Lists */
-.truckGroup {
-  margin-bottom: 10px;
+.operationsRail {
+  height: 100%;
+  display: grid;
+  grid-template-rows: repeat(4, auto);
+  align-content: start;
+  gap: var(--gap);
 }
 
-.truckGroupTitle {
+.railPanel {
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  height: auto;
+  padding: 10px;
+  background:
+    linear-gradient(180deg, rgba(20, 34, 52, 0.98), rgba(11, 20, 32, 0.96)),
+    var(--card);
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.04),
+    var(--shadow-soft);
+}
+
+.railBody {
+  min-height: 0;
+  overflow: hidden;
+}
+
+.singleList {
+  font-size: clamp(11px, 0.86vw, 13px);
+  line-height: 1.4;
+}
+
+.railGroup {
+  margin-bottom: 9px;
+  padding: 0;
+  border-radius: 0;
+  background: transparent;
+  border: 0;
+}
+
+.railGroup:last-child {
+  margin-bottom: 0;
+}
+
+.railGroupHeader {
   display: flex;
   justify-content: space-between;
   align-items: baseline;
-
-  font-weight: 900;
-  font-size: clamp(11px, 0.85vw, 13px);
-  letter-spacing: 0.2px;
+  gap: 8px;
   margin-bottom: 4px;
-}
-
-.truckGroupCount {
+  font-size: clamp(10px, 0.78vw, 12px);
   font-weight: 900;
-  opacity: 0.8;
-  font-size: clamp(10px, 0.8vw, 12px);
+  text-transform: uppercase;
+  letter-spacing: 0.65px;
+  color: #dce8fb;
 }
 
-.truckGroupList {
-  font-size: clamp(11px, 0.85vw, 13px);
+.railGroupCount {
+  opacity: 0.82;
+  font-size: clamp(10px, 0.78vw, 12px);
 }
 
-.truckGroupTitle.down {
-  color: #ffb3b3;
+.railGroupList {
+  font-size: clamp(11px, 0.86vw, 13px);
+  line-height: 1.35;
+  color: rgba(228, 237, 251, 0.86);
 }
 
-.truckGroupTitle.unavailable {
-  color: #ffd6a3;
-}
-
-/* Sidebar Flipper (TV/Desktop only) */
-.sidebarFlipStage {
-  height: 100%;
-  width: 100%;
-  perspective: 1200px;
-  overflow: hidden;
-}
-
-.sidebarFlipCard {
-  position: relative;
-  height: 100%;
-  width: 100%;
-  transform-style: preserve-3d;
-  transition: transform 700ms cubic-bezier(0.2, 0.8, 0.2, 1);
-}
-
-.sidebarFlipCard.isFlipped {
-  transform: rotateY(180deg);
-}
-
-.sidebarFace {
-  position: absolute;
-  inset: 0;
-  backface-visibility: hidden;
-  -webkit-backface-visibility: hidden;
-
-  display: flex;
-  flex-direction: column;
-  gap: var(--gap);
-  height: 100%;
-  width: 100%;
-}
-
-.sidebarFace .card {
-  flex: 1 1 0;
-  min-height: 0;
-}
-
-.sidebarFront {
-  transform: rotateY(0deg);
-}
-
-.sidebarBack {
-  transform: rotateY(180deg);
+.empty {
+  font-size: clamp(11px, 0.86vw, 13px);
+  color: rgba(201, 213, 232, 0.76);
 }

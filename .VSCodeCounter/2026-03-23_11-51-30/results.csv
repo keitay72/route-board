@@ -1,0 +1,50 @@
+"filename", "language", "JavaScript JSX", "JavaScript", "JSON", "HTML", "PostCSS", "Markdown", "comment", "blank", "total"
+"/Users/keithtaylor/Projects/Route-Board/route-board/README.md", "Markdown", 0, 0, 0, 0, 0, 201, 0, 71, 272
+"/Users/keithtaylor/Projects/Route-Board/route-board/eslint.config.js", "JavaScript", 0, 36, 0, 0, 0, 0, 0, 2, 38
+"/Users/keithtaylor/Projects/Route-Board/route-board/index.html", "HTML", 0, 0, 0, 13, 0, 0, 0, 1, 14
+"/Users/keithtaylor/Projects/Route-Board/route-board/netlify/functions/fleetio-trip-status.js", "JavaScript", 0, 457, 0, 0, 0, 0, 0, 89, 546
+"/Users/keithtaylor/Projects/Route-Board/route-board/package-lock.json", "JSON", 0, 0, 18662, 0, 0, 0, 0, 1, 18663
+"/Users/keithtaylor/Projects/Route-Board/route-board/package.json", "JSON", 0, 0, 28, 0, 0, 0, 0, 1, 29
+"/Users/keithtaylor/Projects/Route-Board/route-board/src/App.jsx", "JavaScript JSX", 102, 0, 0, 0, 0, 0, 0, 18, 120
+"/Users/keithtaylor/Projects/Route-Board/route-board/src/company.js", "JavaScript", 0, 38, 0, 0, 0, 0, 0, 8, 46
+"/Users/keithtaylor/Projects/Route-Board/route-board/src/components/CommaList.jsx", "JavaScript JSX", 18, 0, 0, 0, 0, 0, 0, 1, 19
+"/Users/keithtaylor/Projects/Route-Board/route-board/src/components/HeaderBar.jsx", "JavaScript JSX", 27, 0, 0, 0, 0, 0, 0, 3, 30
+"/Users/keithtaylor/Projects/Route-Board/route-board/src/components/LoadingMark.jsx", "JavaScript JSX", 258, 0, 0, 0, 0, 0, 0, 26, 284
+"/Users/keithtaylor/Projects/Route-Board/route-board/src/components/MobileBoard.jsx", "JavaScript JSX", 185, 0, 0, 0, 0, 0, 0, 20, 205
+"/Users/keithtaylor/Projects/Route-Board/route-board/src/components/RouteTile.jsx", "JavaScript JSX", 70, 0, 0, 0, 0, 0, 0, 15, 85
+"/Users/keithtaylor/Projects/Route-Board/route-board/src/components/Sidebar.jsx", "JavaScript JSX", 112, 0, 0, 0, 0, 0, 0, 10, 122
+"/Users/keithtaylor/Projects/Route-Board/route-board/src/components/TvBoard.jsx", "JavaScript JSX", 125, 0, 0, 0, 0, 0, 0, 19, 144
+"/Users/keithtaylor/Projects/Route-Board/route-board/src/hooks/useFitDriverText.js", "JavaScript", 0, 43, 0, 0, 0, 0, 0, 13, 56
+"/Users/keithtaylor/Projects/Route-Board/route-board/src/hooks/useFleetioTripStatus.js", "JavaScript", 0, 146, 0, 0, 0, 0, 0, 30, 176
+"/Users/keithtaylor/Projects/Route-Board/route-board/src/hooks/useIsMobile.js", "JavaScript", 0, 19, 0, 0, 0, 0, 0, 7, 26
+"/Users/keithtaylor/Projects/Route-Board/route-board/src/hooks/useRouteBoardData.js", "JavaScript", 0, 126, 0, 0, 0, 0, 0, 15, 141
+"/Users/keithtaylor/Projects/Route-Board/route-board/src/hooks/useRouteBoardState.js", "JavaScript", 0, 83, 0, 0, 0, 0, 3, 14, 100
+"/Users/keithtaylor/Projects/Route-Board/route-board/src/hooks/useViewportTileScale.js", "JavaScript", 0, 20, 0, 0, 0, 0, 0, 7, 27
+"/Users/keithtaylor/Projects/Route-Board/route-board/src/index.css", "PostCSS", 0, 0, 0, 0, 58, 0, 7, 16, 81
+"/Users/keithtaylor/Projects/Route-Board/route-board/src/main.jsx", "JavaScript JSX", 9, 0, 0, 0, 0, 0, 0, 2, 11
+"/Users/keithtaylor/Projects/Route-Board/route-board/src/styles/background.css", "PostCSS", 0, 0, 0, 0, 57, 0, 4, 6, 67
+"/Users/keithtaylor/Projects/Route-Board/route-board/src/styles/cards.css", "PostCSS", 0, 0, 0, 0, 36, 0, 0, 7, 43
+"/Users/keithtaylor/Projects/Route-Board/route-board/src/styles/flip.css", "PostCSS", 0, 0, 0, 0, 37, 0, 0, 7, 44
+"/Users/keithtaylor/Projects/Route-Board/route-board/src/styles/footer.css", "PostCSS", 0, 0, 0, 0, 48, 0, 0, 6, 54
+"/Users/keithtaylor/Projects/Route-Board/route-board/src/styles/header.css", "PostCSS", 0, 0, 0, 0, 78, 0, 0, 14, 92
+"/Users/keithtaylor/Projects/Route-Board/route-board/src/styles/layout.css", "PostCSS", 0, 0, 0, 0, 46, 0, 0, 11, 57
+"/Users/keithtaylor/Projects/Route-Board/route-board/src/styles/loader.css", "PostCSS", 0, 0, 0, 0, 24, 0, 1, 5, 30
+"/Users/keithtaylor/Projects/Route-Board/route-board/src/styles/loadingMark.css", "PostCSS", 0, 0, 0, 0, 67, 0, 6, 10, 83
+"/Users/keithtaylor/Projects/Route-Board/route-board/src/styles/mobileCards.css", "PostCSS", 0, 0, 0, 0, 131, 0, 1, 23, 155
+"/Users/keithtaylor/Projects/Route-Board/route-board/src/styles/mobileHeader.css", "PostCSS", 0, 0, 0, 0, 45, 0, 1, 9, 55
+"/Users/keithtaylor/Projects/Route-Board/route-board/src/styles/mobileLayout.css", "PostCSS", 0, 0, 0, 0, 53, 0, 7, 14, 74
+"/Users/keithtaylor/Projects/Route-Board/route-board/src/styles/overlays.css", "PostCSS", 0, 0, 0, 0, 17, 0, 0, 3, 20
+"/Users/keithtaylor/Projects/Route-Board/route-board/src/styles/routeTile.css", "PostCSS", 0, 0, 0, 0, 127, 0, 17, 34, 178
+"/Users/keithtaylor/Projects/Route-Board/route-board/src/styles/routesCard.css", "PostCSS", 0, 0, 0, 0, 5, 0, 0, 1, 6
+"/Users/keithtaylor/Projects/Route-Board/route-board/src/styles/routesGrid.css", "PostCSS", 0, 0, 0, 0, 25, 0, 4, 6, 35
+"/Users/keithtaylor/Projects/Route-Board/route-board/src/styles/sidebar.css", "PostCSS", 0, 0, 0, 0, 70, 0, 0, 11, 81
+"/Users/keithtaylor/Projects/Route-Board/route-board/src/styles/tiles.css", "PostCSS", 0, 0, 0, 0, 114, 0, 3, 28, 145
+"/Users/keithtaylor/Projects/Route-Board/route-board/src/styles/typography.css", "PostCSS", 0, 0, 0, 0, 23, 0, 10, 8, 41
+"/Users/keithtaylor/Projects/Route-Board/route-board/src/utils/dates.js", "JavaScript", 0, 43, 0, 0, 0, 0, 0, 9, 52
+"/Users/keithtaylor/Projects/Route-Board/route-board/src/utils/fleetioSchedule.js", "JavaScript", 0, 128, 0, 0, 0, 0, 0, 20, 148
+"/Users/keithtaylor/Projects/Route-Board/route-board/src/utils/format.js", "JavaScript", 0, 25, 0, 0, 0, 0, 0, 5, 30
+"/Users/keithtaylor/Projects/Route-Board/route-board/src/utils/grid.js", "JavaScript", 0, 30, 0, 0, 0, 0, 0, 7, 37
+"/Users/keithtaylor/Projects/Route-Board/route-board/src/utils/normalize.js", "JavaScript", 0, 23, 0, 0, 0, 0, 0, 7, 30
+"/Users/keithtaylor/Projects/Route-Board/route-board/src/utils/trucks.js", "JavaScript", 0, 108, 0, 0, 0, 0, 0, 33, 141
+"/Users/keithtaylor/Projects/Route-Board/route-board/vite.config.js", "JavaScript", 0, 8, 0, 0, 0, 0, 1, 2, 11
+"Total", "-", 906, 1333, 18690, 13, 1061, 201, 65, 675, 22944

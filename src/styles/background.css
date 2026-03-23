@@ -10,6 +10,16 @@
 
   background:
     radial-gradient(
+      circle at top left,
+      rgba(74, 138, 224, 0.24) 0%,
+      transparent 26%
+    ),
+    radial-gradient(
+      circle at 88% 16%,
+      rgba(72, 146, 222, 0.16) 0%,
+      transparent 24%
+    ),
+    radial-gradient(
       circle at 20% 30%,
       rgba(255, 255, 255, 0.05) 0 1px,
       transparent 2px
@@ -43,7 +53,7 @@
       transparent 45%,
       rgba(0, 0, 0, 0.65) 100%
     ),
-    linear-gradient(#05111b, #081f33);
+    linear-gradient(180deg, #071321 0%, #0b2136 52%, #0a1d31 100%);
 
   perspective: 1200px;
   overflow: hidden;

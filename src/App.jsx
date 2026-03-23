@@ -16,7 +16,6 @@ import TvBoard from "./components/TvBoard";
 
 const GRID_COLS = 5;
 const GRID_ROWS = 13;
-const SIDEBAR_FLIP_MS = 5000;
 
 export default function App() {
   const isMobile = useIsMobile();
@@ -30,18 +29,17 @@ export default function App() {
   const vm = useRouteBoardState({
     company,
     data,
-    isMobile,
     gridCols: GRID_COLS,
     gridRows: GRID_ROWS,
-    sidebarFlipMs: SIDEBAR_FLIP_MS,
   });
 
   useFitDriverText(vm.revealBoard, `${data?.generatedAt || ""}|${tileScale}`);
 
-  const { trips: fleetioTrips, error: fleetioError } = useFleetioTripStatus(
-    company,
-    vm.boardDate,
-  );
+  const {
+    trips: fleetioTrips,
+    error: fleetioError,
+    loading: fleetioLoading,
+  } = useFleetioTripStatus(company, vm.boardDate);
 
   const mergedError = [error, fleetioError].filter(Boolean).join(" | ");
 
@@ -64,6 +62,7 @@ export default function App() {
 
           <div className="flipFace flipBack">
             <MobileBoard
+              company={company}
               cfg={cfg}
               data={data}
               loading={loading}
@@ -76,6 +75,7 @@ export default function App() {
               unavailableDrivers={vm.unavailableDrivers}
               message={vm.message}
               fleetioTrips={fleetioTrips}
+              availGroups={vm.availGroups}
             />
           </div>
         </div>
@@ -102,8 +102,9 @@ export default function App() {
             data={data}
             loading={loading}
             error={mergedError}
+            fleetioLoading={fleetioLoading}
+            dispatch={vm.dispatch}
             columns={vm.columns}
-            sidebarFace={vm.sidebarFace}
             availableTrucks={vm.availableTrucks}
             availGroups={vm.availGroups}
             unavailableSorted={vm.unavailableSorted}

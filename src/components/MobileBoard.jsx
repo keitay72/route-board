@@ -4,7 +4,29 @@ import RouteTile from "./RouteTile";
 import CommaList from "./CommaList";
 import { splitAvailableTrucksByType } from "../utils/trucks";
 
+function buildTruckReadySections(company, availGroups, availableTrucks) {
+  const isMhd = String(company || "").toLowerCase() === "mhd";
+
+  if (isMhd) {
+    return (Array.isArray(availGroups) ? availGroups : []).map(
+      ([label, trucks]) => ({
+        label,
+        items: trucks || [],
+      }),
+    );
+  }
+
+  const { residential, commercial } =
+    splitAvailableTrucksByType(availableTrucks);
+
+  return [
+    { label: "Residential", items: residential },
+    { label: "Commercial", items: commercial },
+  ];
+}
+
 export default function MobileBoard({
+  company,
   cfg,
   data,
   loading,
@@ -17,15 +39,16 @@ export default function MobileBoard({
   unavailableDrivers,
   message,
   fleetioTrips,
+  availGroups,
 }) {
   const routeItems = useMemo(
     () => items.filter((x) => x.type !== "blank"),
     [items],
   );
 
-  const { residential, commercial } = useMemo(
-    () => splitAvailableTrucksByType(availableTrucks),
-    [availableTrucks],
+  const truckReadySections = useMemo(
+    () => buildTruckReadySections(company, availGroups, availableTrucks),
+    [company, availGroups, availableTrucks],
   );
 
   return (
@@ -87,109 +110,101 @@ export default function MobileBoard({
             </div>
           </section>
 
-          <section className="card mCard">
-            <div className="cardTitleRow">
-              <div className="cardTitle">Trucks Available</div>
-              <div className="count">{availableTrucks.length}</div>
-            </div>
+          <div className="mOpsGrid">
+            <section className="card mCard mOpsCard tone-ready">
+              <div className="cardTitleRow">
+                <div className="cardTitle">Trucks Ready</div>
+                <div className="count">{availableTrucks.length}</div>
+              </div>
 
-            <div className="mSectionBody">
-              {residential.length === 0 && commercial.length === 0 ? (
-                <div className="empty">No available trucks ✅</div>
-              ) : (
-                <>
-                  <section className="truckGroup">
-                    <div className="truckGroupTitle">
-                      <span>Residential</span>
-                      <span className="truckGroupCount">
-                        {residential.length}
-                      </span>
-                    </div>
-                    <div className="truckGroupList text-list">
-                      {residential.length ? residential.join(", ") : "—"}
-                    </div>
-                  </section>
+              <div className="mSectionBody">
+                {availableTrucks.length === 0 ? (
+                  <div className="empty">No available trucks ✅</div>
+                ) : (
+                  <>
+                    {truckReadySections.map((section) => (
+                      <section className="truckGroup" key={section.label}>
+                        <div className="truckGroupTitle">
+                          <span>{section.label}</span>
+                          <span className="truckGroupCount">
+                            {section.items.length}
+                          </span>
+                        </div>
+                        <div className="truckGroupList text-list mOpsList">
+                          {section.items.length ? section.items.join(", ") : "—"}
+                        </div>
+                      </section>
+                    ))}
+                  </>
+                )}
+              </div>
+            </section>
 
-                  <section className="truckGroup">
-                    <div className="truckGroupTitle">
-                      <span>Commercial</span>
-                      <span className="truckGroupCount">
-                        {commercial.length}
-                      </span>
-                    </div>
-                    <div className="truckGroupList text-list">
-                      {commercial.length ? commercial.join(", ") : "—"}
-                    </div>
-                  </section>
-                </>
-              )}
-            </div>
-          </section>
+            <section className="card mCard mOpsCard tone-down">
+              <div className="cardTitleRow">
+                <div className="cardTitle">Trucks Down</div>
+                <div className="count">{unavailableSorted.length}</div>
+              </div>
 
-          <section className="card mCard">
-            <div className="cardTitleRow">
-              <div className="cardTitle">Trucks Unavailable</div>
-              <div className="count">{unavailableSorted.length}</div>
-            </div>
+              <div className="mSectionBody">
+                {unavailableSorted.length === 0 ? (
+                  <div className="empty">All trucks available ✅</div>
+                ) : (
+                  groupedTrucks.map(([label, trucks]) => (
+                    <section className="truckGroup" key={label}>
+                      <div className={`truckGroupTitle ${label.toLowerCase()}`}>
+                        <span>{label}</span>
+                        <span className="truckGroupCount">{trucks.length}</span>
+                      </div>
+                      <div className="truckGroupList text-list mOpsList">
+                        {trucks.join(", ")}
+                      </div>
+                    </section>
+                  ))
+                )}
+              </div>
+            </section>
 
-            <div className="mSectionBody">
-              {unavailableSorted.length === 0 ? (
-                <div className="empty">All trucks available ✅</div>
-              ) : (
-                groupedTrucks.map(([label, trucks]) => (
-                  <section className="truckGroup" key={label}>
-                    <div className={`truckGroupTitle ${label.toLowerCase()}`}>
-                      <span>{label}</span>
-                      <span className="truckGroupCount">{trucks.length}</span>
-                    </div>
-                    <div className="truckGroupList text-list">
-                      {trucks.join(", ")}
-                    </div>
-                  </section>
-                ))
-              )}
-            </div>
-          </section>
+            <section className="card mCard mOpsCard tone-ready">
+              <div className="cardTitleRow">
+                <div className="cardTitle">Drivers Ready</div>
+                <div className="count">{availableDrivers.length}</div>
+              </div>
 
-          <section className="card mCard">
-            <div className="cardTitleRow">
-              <div className="cardTitle">Drivers Available</div>
-              <div className="count">{availableDrivers.length}</div>
-            </div>
+              <div className="mSectionBody">
+                {availableDrivers.length === 0 ? (
+                  <div className="empty">No available drivers</div>
+                ) : (
+                  <div className="truckGroupList text-list mOpsList">
+                    <CommaList
+                      items={availableDrivers}
+                      keyPrefix="m-avail-driver"
+                    />
+                  </div>
+                )}
+              </div>
+            </section>
 
-            <div className="mSectionBody">
-              {availableDrivers.length === 0 ? (
-                <div className="empty">No available drivers</div>
-              ) : (
-                <div className="truckGroupList text-list">
-                  <CommaList
-                    items={availableDrivers}
-                    keyPrefix="m-avail-driver"
-                  />
-                </div>
-              )}
-            </div>
-          </section>
+            <section className="card mCard mOpsCard tone-down">
+              <div className="cardTitleRow">
+                <div className="cardTitle">Drivers Out</div>
+                <div className="count">{unavailableDrivers.length}</div>
+              </div>
 
-          <section className="card mCard">
-            <div className="cardTitleRow">
-              <div className="cardTitle">Drivers Unavailable</div>
-              <div className="count">{unavailableDrivers.length}</div>
-            </div>
-
-            <div className="mSectionBody">
-              {unavailableDrivers.length === 0 ? (
-                <div className="empty">None ✅</div>
-              ) : (
-                <div className="truckGroupList text-list">
-                  <CommaList
-                    items={unavailableDrivers}
-                    keyPrefix="m-unavail-driver"
-                  />
-                </div>
-              )}
-            </div>
-          </section>
+              <div className="mSectionBody">
+                {unavailableDrivers.length === 0 ? (
+                  <div className="empty">All drivers are present.</div>
+                ) : (
+                  <div className="truckGroupList text-list mOpsList">
+                    <CommaList
+                      items={unavailableDrivers}
+                      keyPrefix="m-unavail-driver"
+                    />
+                  </div>
+                )}
+              </div>
+            </section>
+          </div>
 
           <div className="mCopyright">
             Copyright © {new Date().getFullYear()} {cfg.copyright}. All rights

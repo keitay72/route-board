@@ -1,3 +1,5 @@
+import { useLayoutEffect, useRef, useState } from "react";
+
 import HeaderBar from "./HeaderBar";
 import Sidebar from "./Sidebar";
 import RouteTile from "./RouteTile";
@@ -8,8 +10,8 @@ export default function TvBoard({
   data,
   loading,
   error,
+  fleetioLoading,
   columns,
-  sidebarFace,
   availableTrucks,
   availGroups,
   unavailableSorted,
@@ -19,11 +21,56 @@ export default function TvBoard({
   message,
   fleetioTrips,
 }) {
-  return (
-    <div className="layout">
-      <HeaderBar cfg={cfg} generatedAt={data?.generatedAt} />
+  const mainRef = useRef(null);
+  const sidebarRailRef = useRef(null);
+  const [sidebarNeedsFooterRow, setSidebarNeedsFooterRow] = useState(false);
 
-      <main className="main">
+  useLayoutEffect(() => {
+    function measureLayout() {
+      const mainEl = mainRef.current;
+      const railEl = sidebarRailRef.current;
+      if (!mainEl || !railEl) return;
+
+      const availableHeight = mainEl.clientHeight;
+      const neededHeight = railEl.scrollHeight;
+      const next = neededHeight > availableHeight + 1;
+
+      setSidebarNeedsFooterRow((prev) => (prev === next ? prev : next));
+    }
+
+    measureLayout();
+
+    let frameId = 0;
+    const scheduleMeasure = () => {
+      window.cancelAnimationFrame(frameId);
+      frameId = window.requestAnimationFrame(measureLayout);
+    };
+
+    let observer = null;
+    if (typeof ResizeObserver !== "undefined") {
+      observer = new ResizeObserver(scheduleMeasure);
+      if (mainRef.current) observer.observe(mainRef.current);
+      if (sidebarRailRef.current) observer.observe(sidebarRailRef.current);
+    }
+
+    window.addEventListener("resize", scheduleMeasure);
+
+    return () => {
+      window.cancelAnimationFrame(frameId);
+      window.removeEventListener("resize", scheduleMeasure);
+      observer?.disconnect();
+    };
+  }, [availGroups, groupedTrucks, availableDrivers, unavailableDrivers]);
+
+  return (
+    <div className={`layout ${sidebarNeedsFooterRow ? "layoutSidebarExpanded" : ""}`}>
+      <HeaderBar
+        cfg={cfg}
+        generatedAt={data?.generatedAt}
+        fleetioLoading={fleetioLoading}
+      />
+
+      <main className="main" ref={mainRef}>
         <div className="card routesCard">
           <div className="routesBody">
             <div className="routesGrid">
@@ -72,25 +119,25 @@ export default function TvBoard({
 
       <Sidebar
         company={company}
-        sidebarFace={sidebarFace}
         availGroups={availGroups}
+        groupedTrucks={groupedTrucks}
         availableTrucksCount={availableTrucks?.length || 0}
         unavailableSortedCount={unavailableSorted?.length || 0}
-        groupedTrucks={groupedTrucks}
         availableDrivers={availableDrivers}
         unavailableDrivers={unavailableDrivers}
+        railRef={sidebarRailRef}
       />
 
       <footer className="footer">
         <div className="messageCard">
           <div className="messageTextScroll">{message || ""}</div>
         </div>
-
-        <div className="copyright">
-          Copyright © {new Date().getFullYear()} {cfg.copyright}. All rights
-          reserved.
-        </div>
       </footer>
+
+      <div className="copyright globalCopyright">
+        Copyright © {new Date().getFullYear()} {cfg.copyright}. All rights
+        reserved.
+      </div>
     </div>
   );
 }

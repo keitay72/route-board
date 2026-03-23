@@ -33,11 +33,17 @@
    ========================= */
 
 :root {
-  --bg: #0b1420;
-  --card: #0f1c2b;
-  --card2: #122133;
-  --border: #24364a;
-  --text: #eaf2ff;
+  --bg: #09131f;
+  --bg2: #0f1d2d;
+  --card: rgba(15, 28, 43, 0.88);
+  --card2: rgba(20, 35, 53, 0.92);
+  --card3: rgba(26, 43, 64, 0.72);
+  --border: rgba(92, 118, 151, 0.34);
+  --border-strong: rgba(132, 160, 198, 0.28);
+  --text: #edf4ff;
+  --text-soft: rgba(222, 232, 246, 0.78);
+  --shadow-soft: 0 14px 32px rgba(2, 8, 18, 0.34);
+  --shadow-card: 0 18px 40px rgba(2, 8, 18, 0.42);
 
   --gap: 10px;
   --tileGap: 8px;

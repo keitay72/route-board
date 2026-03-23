@@ -15,6 +15,9 @@
 
   padding-left: calc(10px + var(--capW));
   padding-right: calc(10px + var(--capW));
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.028), rgba(255, 255, 255, 0)),
+    var(--card2);
 }
 
 /* Text above paint */
@@ -40,9 +43,10 @@
 .routeTile .routeCode,
 .routeTile .truckNum {
   font-weight: 900;
-  letter-spacing: 0.2px;
+  letter-spacing: 0.28px;
   white-space: nowrap;
   font-variant-numeric: tabular-nums;
+  color: rgba(240, 246, 255, 0.94);
 
   font-size: clamp(
     calc(11px * var(--tileTypeScale)),
@@ -67,8 +71,8 @@
 
   overflow: hidden;
 
-  /* ✅ this is the missing piece */
   font-weight: 900;
+  color: #f6fbff;
   font-size: clamp(
     calc(12px * var(--tileTypeScale)),
     calc(2.35vmin * var(--tileTypeScale)),
@@ -81,6 +85,7 @@
   white-space: nowrap;
   transform-origin: center center;
   will-change: transform;
+  text-shadow: 0 1px 10px rgba(4, 10, 18, 0.24);
 }
 
 /* =========================

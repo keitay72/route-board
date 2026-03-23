@@ -1,0 +1,86 @@
+Date : 2026-03-23 11:51:30
+Directory : /Users/keithtaylor/Projects/Route-Board/route-board
+Total : 48 files,  22204 codes, 65 comments, 675 blanks, all 22944 lines
+
+Languages
++----------------+------------+------------+------------+------------+------------+
+| language       | files      | code       | comment    | blank      | total      |
++----------------+------------+------------+------------+------------+------------+
+| JSON           |          2 |     18,690 |          0 |          2 |     18,692 |
+| JavaScript     |         16 |      1,333 |          4 |        268 |      1,605 |
+| PostCSS        |         19 |      1,061 |         61 |        219 |      1,341 |
+| JavaScript JSX |          9 |        906 |          0 |        114 |      1,020 |
+| Markdown       |          1 |        201 |          0 |         71 |        272 |
+| HTML           |          1 |         13 |          0 |          1 |         14 |
++----------------+------------+------------+------------+------------+------------+
+
+Directories
++----------------------------------------------------------------------------------------------+------------+------------+------------+------------+------------+
+| path                                                                                         | files      | code       | comment    | blank      | total      |
++----------------------------------------------------------------------------------------------+------------+------------+------------+------------+------------+
+| .                                                                                            |         48 |     22,204 |         65 |        675 |     22,944 |
+| . (Files)                                                                                    |          6 |     18,948 |          1 |         78 |     19,027 |
+| netlify                                                                                      |          1 |        457 |          0 |         89 |        546 |
+| netlify/functions                                                                            |          1 |        457 |          0 |         89 |        546 |
+| src                                                                                          |         41 |      2,799 |         64 |        508 |      3,371 |
+| src (Files)                                                                                  |          4 |        207 |          7 |         44 |        258 |
+| src/components                                                                               |          7 |        795 |          0 |         94 |        889 |
+| src/hooks                                                                                    |          6 |        437 |          3 |         86 |        526 |
+| src/styles                                                                                   |         18 |      1,003 |         54 |        203 |      1,260 |
+| src/utils                                                                                    |          6 |        357 |          0 |         81 |        438 |
++----------------------------------------------------------------------------------------------+------------+------------+------------+------------+------------+
+
+Files
++----------------------------------------------------------------------------------------------+----------------+------------+------------+------------+------------+
+| filename                                                                                     | language       | code       | comment    | blank      | total      |
++----------------------------------------------------------------------------------------------+----------------+------------+------------+------------+------------+
+| /Users/keithtaylor/Projects/Route-Board/route-board/README.md                                | Markdown       |        201 |          0 |         71 |        272 |
+| /Users/keithtaylor/Projects/Route-Board/route-board/eslint.config.js                         | JavaScript     |         36 |          0 |          2 |         38 |
+| /Users/keithtaylor/Projects/Route-Board/route-board/index.html                               | HTML           |         13 |          0 |          1 |         14 |
+| /Users/keithtaylor/Projects/Route-Board/route-board/netlify/functions/fleetio-trip-status.js | JavaScript     |        457 |          0 |         89 |        546 |
+| /Users/keithtaylor/Projects/Route-Board/route-board/package-lock.json                        | JSON           |     18,662 |          0 |          1 |     18,663 |
+| /Users/keithtaylor/Projects/Route-Board/route-board/package.json                             | JSON           |         28 |          0 |          1 |         29 |
+| /Users/keithtaylor/Projects/Route-Board/route-board/src/App.jsx                              | JavaScript JSX |        102 |          0 |         18 |        120 |
+| /Users/keithtaylor/Projects/Route-Board/route-board/src/company.js                           | JavaScript     |         38 |          0 |          8 |         46 |
+| /Users/keithtaylor/Projects/Route-Board/route-board/src/components/CommaList.jsx             | JavaScript JSX |         18 |          0 |          1 |         19 |
+| /Users/keithtaylor/Projects/Route-Board/route-board/src/components/HeaderBar.jsx             | JavaScript JSX |         27 |          0 |          3 |         30 |
+| /Users/keithtaylor/Projects/Route-Board/route-board/src/components/LoadingMark.jsx           | JavaScript JSX |        258 |          0 |         26 |        284 |
+| /Users/keithtaylor/Projects/Route-Board/route-board/src/components/MobileBoard.jsx           | JavaScript JSX |        185 |          0 |         20 |        205 |
+| /Users/keithtaylor/Projects/Route-Board/route-board/src/components/RouteTile.jsx             | JavaScript JSX |         70 |          0 |         15 |         85 |
+| /Users/keithtaylor/Projects/Route-Board/route-board/src/components/Sidebar.jsx               | JavaScript JSX |        112 |          0 |         10 |        122 |
+| /Users/keithtaylor/Projects/Route-Board/route-board/src/components/TvBoard.jsx               | JavaScript JSX |        125 |          0 |         19 |        144 |
+| /Users/keithtaylor/Projects/Route-Board/route-board/src/hooks/useFitDriverText.js            | JavaScript     |         43 |          0 |         13 |         56 |
+| /Users/keithtaylor/Projects/Route-Board/route-board/src/hooks/useFleetioTripStatus.js        | JavaScript     |        146 |          0 |         30 |        176 |
+| /Users/keithtaylor/Projects/Route-Board/route-board/src/hooks/useIsMobile.js                 | JavaScript     |         19 |          0 |          7 |         26 |
+| /Users/keithtaylor/Projects/Route-Board/route-board/src/hooks/useRouteBoardData.js           | JavaScript     |        126 |          0 |         15 |        141 |
+| /Users/keithtaylor/Projects/Route-Board/route-board/src/hooks/useRouteBoardState.js          | JavaScript     |         83 |          3 |         14 |        100 |
+| /Users/keithtaylor/Projects/Route-Board/route-board/src/hooks/useViewportTileScale.js        | JavaScript     |         20 |          0 |          7 |         27 |
+| /Users/keithtaylor/Projects/Route-Board/route-board/src/index.css                            | PostCSS        |         58 |          7 |         16 |         81 |
+| /Users/keithtaylor/Projects/Route-Board/route-board/src/main.jsx                             | JavaScript JSX |          9 |          0 |          2 |         11 |
+| /Users/keithtaylor/Projects/Route-Board/route-board/src/styles/background.css                | PostCSS        |         57 |          4 |          6 |         67 |
+| /Users/keithtaylor/Projects/Route-Board/route-board/src/styles/cards.css                     | PostCSS        |         36 |          0 |          7 |         43 |
+| /Users/keithtaylor/Projects/Route-Board/route-board/src/styles/flip.css                      | PostCSS        |         37 |          0 |          7 |         44 |
+| /Users/keithtaylor/Projects/Route-Board/route-board/src/styles/footer.css                    | PostCSS        |         48 |          0 |          6 |         54 |
+| /Users/keithtaylor/Projects/Route-Board/route-board/src/styles/header.css                    | PostCSS        |         78 |          0 |         14 |         92 |
+| /Users/keithtaylor/Projects/Route-Board/route-board/src/styles/layout.css                    | PostCSS        |         46 |          0 |         11 |         57 |
+| /Users/keithtaylor/Projects/Route-Board/route-board/src/styles/loader.css                    | PostCSS        |         24 |          1 |          5 |         30 |
+| /Users/keithtaylor/Projects/Route-Board/route-board/src/styles/loadingMark.css               | PostCSS        |         67 |          6 |         10 |         83 |
+| /Users/keithtaylor/Projects/Route-Board/route-board/src/styles/mobileCards.css               | PostCSS        |        131 |          1 |         23 |        155 |
+| /Users/keithtaylor/Projects/Route-Board/route-board/src/styles/mobileHeader.css              | PostCSS        |         45 |          1 |          9 |         55 |
+| /Users/keithtaylor/Projects/Route-Board/route-board/src/styles/mobileLayout.css              | PostCSS        |         53 |          7 |         14 |         74 |
+| /Users/keithtaylor/Projects/Route-Board/route-board/src/styles/overlays.css                  | PostCSS        |         17 |          0 |          3 |         20 |
+| /Users/keithtaylor/Projects/Route-Board/route-board/src/styles/routeTile.css                 | PostCSS        |        127 |         17 |         34 |        178 |
+| /Users/keithtaylor/Projects/Route-Board/route-board/src/styles/routesCard.css                | PostCSS        |          5 |          0 |          1 |          6 |
+| /Users/keithtaylor/Projects/Route-Board/route-board/src/styles/routesGrid.css                | PostCSS        |         25 |          4 |          6 |         35 |
+| /Users/keithtaylor/Projects/Route-Board/route-board/src/styles/sidebar.css                   | PostCSS        |         70 |          0 |         11 |         81 |
+| /Users/keithtaylor/Projects/Route-Board/route-board/src/styles/tiles.css                     | PostCSS        |        114 |          3 |         28 |        145 |
+| /Users/keithtaylor/Projects/Route-Board/route-board/src/styles/typography.css                | PostCSS        |         23 |         10 |          8 |         41 |
+| /Users/keithtaylor/Projects/Route-Board/route-board/src/utils/dates.js                       | JavaScript     |         43 |          0 |          9 |         52 |
+| /Users/keithtaylor/Projects/Route-Board/route-board/src/utils/fleetioSchedule.js             | JavaScript     |        128 |          0 |         20 |        148 |
+| /Users/keithtaylor/Projects/Route-Board/route-board/src/utils/format.js                      | JavaScript     |         25 |          0 |          5 |         30 |
+| /Users/keithtaylor/Projects/Route-Board/route-board/src/utils/grid.js                        | JavaScript     |         30 |          0 |          7 |         37 |
+| /Users/keithtaylor/Projects/Route-Board/route-board/src/utils/normalize.js                   | JavaScript     |         23 |          0 |          7 |         30 |
+| /Users/keithtaylor/Projects/Route-Board/route-board/src/utils/trucks.js                      | JavaScript     |        108 |          0 |         33 |        141 |
+| /Users/keithtaylor/Projects/Route-Board/route-board/vite.config.js                           | JavaScript     |          8 |          1 |          2 |         11 |
+| Total                                                                                        |                |     22,204 |         65 |        675 |     22,944 |
++----------------------------------------------------------------------------------------------+----------------+------------+------------+------------+------------+

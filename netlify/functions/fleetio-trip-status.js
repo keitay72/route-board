@@ -16,6 +16,8 @@ const STATUS_WARN = "warn";
 const RESPONSE_CACHE_TTL_SECONDS = 15 * 60;
 const RESPONSE_CACHE_MAX_AGE_MS = RESPONSE_CACHE_TTL_SECONDS * 1000;
 const FLEETIO_MAX_PER_PAGE = 100;
+const FLEETIO_MAX_PAGES = 50;
+const FETCH_RUNTIME_BUDGET_MS = 25 * 1000;
 const EXTRA_OPERATIONAL_SATURDAYS = parseExtraOperationalSaturdays(
   process.env.FLEETIO_EXTRA_SATURDAYS,
 );
@@ -69,7 +71,11 @@ export async function handler(event) {
     };
 
     const startedAt = Date.now();
-    const { forms, stats } = await fetchAllForDate({ headers, date });
+    const { forms, stats } = await fetchAllForDate({
+      headers,
+      date,
+      deadlineMs: startedAt + FETCH_RUNTIME_BUDGET_MS,
+    });
     const trips = buildTrips(forms, date);
     const body = { date, trips };
 
@@ -316,7 +322,7 @@ function buildTrips(forms, date) {
   return trips;
 }
 
-async function fetchAllForDate({ headers, date }) {
+async function fetchAllForDate({ headers, date, deadlineMs }) {
   const target = Date.parse(date);
 
   if (Number.isNaN(target)) {
@@ -331,15 +337,46 @@ async function fetchAllForDate({ headers, date }) {
     };
   }
 
-  try {
-    return await fetchAllForDateFiltered({ headers, date });
-  } catch (error) {
-    if (!shouldFallbackToUnfiltered(error)) throw error;
+  const attempts = [
+    () =>
+      fetchAllForDateFiltered({
+        headers,
+        date,
+        strategy: "date-eq",
+        filters: { "q[date_eq]": date },
+        deadlineMs,
+      }),
+    () =>
+      fetchAllForDateFiltered({
+        headers,
+        date,
+        strategy: "submitted_at-range",
+        filters: {
+          "q[submitted_at_gteq]": date,
+          "q[submitted_at_lt]": nextDateYmd(date),
+        },
+        deadlineMs,
+      }),
+  ];
+  const fallbackReasons = [];
 
-    const fallback = await fetchAllForDateUnfiltered({ headers, date, target });
-    fallback.stats.fallbackReason = error.message;
-    return fallback;
+  for (const attempt of attempts) {
+    try {
+      return await attempt();
+    } catch (error) {
+      if (!shouldFallbackToAlternativeStrategy(error)) throw error;
+      fallbackReasons.push(error.message);
+    }
   }
+
+  const fallback = await fetchAllForDateUnfiltered({
+    headers,
+    date,
+    target,
+    deadlineMs,
+  });
+  fallback.stats.fallbackReason = fallbackReasons.join(" | ");
+  return fallback;
 }
 
 function nextDateYmd(date) {
@@ -352,23 +389,37 @@ function nextDateYmd(date) {
   return `${nextYear}-${nextMonth}-${nextDay}`;
 }
 
-function shouldFallbackToUnfiltered(error) {
+function shouldFallbackToAlternativeStrategy(error) {
   const status = Number(error?.statusCode);
 
+  if (error?.code === "FLEETIO_RUNTIME_BUDGET_EXCEEDED") return false;
   if (!status) return true;
   if (status === 401 || status === 403) return false;
   return true;
 }
 
-async function fetchFleetioPage({ headers, next, dateFilterStart, dateFilterEnd }) {
+function assertWithinDeadline(deadlineMs) {
+  if (!deadlineMs) return;
+  if (Date.now() < deadlineMs) return;
+
+  const error = new Error(
+    "Fleetio fetch exceeded the runtime budget before completing.",
+  );
+  error.code = "FLEETIO_RUNTIME_BUDGET_EXCEEDED";
+  throw error;
+}
+
+async function fetchFleetioPage({ headers, next, filters, deadlineMs }) {
+  assertWithinDeadline(deadlineMs);
+
   const u = new URL(FLEETIO_FORMS_URL);
   u.searchParams.set("per_page", String(FLEETIO_MAX_PER_PAGE));
   if (next) u.searchParams.set("start_cursor", next);
-  if (dateFilterStart) {
-    u.searchParams.set("q[submitted_at_gteq]", dateFilterStart);
-  }
-  if (dateFilterEnd) {
-    u.searchParams.set("q[submitted_at_lt]", dateFilterEnd);
+
+  for (const [key, value] of Object.entries(filters || {})) {
+    if (value != null && value !== "") {
+      u.searchParams.set(key, String(value));
+    }
   }
 
   const res = await fetch(u.toString(), { headers });
@@ -389,24 +440,29 @@ async function fetchFleetioPage({ headers, next, dateFilterStart, dateFilterEnd 
   };
 }
 
-async function fetchAllForDateFiltered({ headers, date }) {
+async function fetchAllForDateFiltered({
+  headers,
+  date,
+  strategy,
+  filters,
+  deadlineMs,
+}) {
   const records = [];
   const stats = {
-    strategy: "submitted_at-range",
+    strategy,
     pagesScanned: 0,
     recordsScanned: 0,
     recordsMatched: 0,
     estimatedRemainingCount: null,
   };
-  const nextDate = nextDateYmd(date);
   let next = null;
 
-  for (let i = 0; i < 200; i++) {
+  for (let i = 0; i < FLEETIO_MAX_PAGES; i++) {
     const result = await fetchFleetioPage({
       headers,
       next,
-      dateFilterStart: date,
-      dateFilterEnd: nextDate,
+      filters,
+      deadlineMs,
     });
 
     stats.pagesScanned += 1;
@@ -429,7 +485,7 @@ async function fetchAllForDateFiltered({ headers, date }) {
   return { forms: records, stats };
 }
 
-async function fetchAllForDateUnfiltered({ headers, date, target }) {
+async function fetchAllForDateUnfiltered({ headers, date, target, deadlineMs }) {
 
   const records = [];
   let next = null;
@@ -442,8 +498,12 @@ async function fetchAllForDateUnfiltered({ headers, date, target }) {
     estimatedRemainingCount: null,
   };
 
-  for (let i = 0; i < 200; i++) {
-    const result = await fetchFleetioPage({ headers, next });
+  for (let i = 0; i < FLEETIO_MAX_PAGES; i++) {
+    const result = await fetchFleetioPage({
+      headers,
+      next,
+      deadlineMs,
+    });
     const page = result.page;
 
     stats.pagesScanned += 1;

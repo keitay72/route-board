@@ -1,171 +1,120 @@
 import CommaList from "./CommaList";
 
+function buildTruckReadySections(company, availGroups) {
+  const isMhd = String(company || "").toLowerCase() === "mhd";
+
+  if (isMhd) {
+    return (Array.isArray(availGroups) ? availGroups : []).map(([label, trucks]) => ({
+      label,
+      items: trucks || [],
+    }));
+  }
+
+  const safeGroups = !Array.isArray(availGroups) ? availGroups || {} : {};
+
+  return [
+    { label: "Residential", items: safeGroups.residential || [] },
+    { label: "Commercial", items: safeGroups.commercial || [] },
+  ];
+}
+
 export default function Sidebar({
   company,
-  sidebarFace,
   availGroups,
+  groupedTrucks,
   availableTrucksCount,
   unavailableSortedCount,
-  groupedTrucks,
   availableDrivers,
   unavailableDrivers,
+  railRef,
 }) {
-  const isMhd = String(company || "").toLowerCase() === "mhd";
-  const safeGroups = !Array.isArray(availGroups) ? availGroups || {} : {};
-  const residential = safeGroups.residential || [];
-  const commercial = safeGroups.commercial || [];
-  const locationGroups = Array.isArray(availGroups) ? availGroups : [];
+  const truckReadySections = buildTruckReadySections(company, availGroups);
 
   return (
     <aside className="sidebar">
-      <div className="sidebarFlipStage">
-        <div
-          className={`sidebarFlipCard ${
-            sidebarFace === "drivers" ? "isFlipped" : ""
-          }`}
-        >
-          <div className="sidebarFace sidebarFront">
-            <div className="card">
-              <div className="cardTitleRow">
-                <div className="cardTitle small">Trucks Available</div>
-                <div className="count">{availableTrucksCount}</div>
-              </div>
-
-              <div className="availTrucksBody">
-                {availableTrucksCount === 0 ? (
-                  <div className="empty">No available trucks ✅</div>
-                ) : isMhd ? (
-                  <>
-                    {locationGroups.map(([label, trucks]) => (
-                      <section className="truckGroup" key={label}>
-                        <div className="truckGroupTitle">
-                          <span>{label}</span>
-                          <span className="truckGroupCount">
-                            {trucks.length}
-                          </span>
-                        </div>
-                        <div className="truckGroupList">
-                          {trucks.length ? (
-                            <CommaList
-                              items={trucks}
-                              keyPrefix={`mhd-${label}`}
-                            />
-                          ) : (
-                            "—"
-                          )}
-                        </div>
-                      </section>
-                    ))}
-                  </>
-                ) : (
-                  <>
-                    <section className="truckGroup">
-                      <div className="truckGroupTitle">
-                        <span>Residential</span>
-                        <span className="truckGroupCount">
-                          {residential.length}
-                        </span>
-                      </div>
-                      <div className="truckGroupList">
-                        {residential.length ? (
-                          <CommaList items={residential} keyPrefix="tv-res" />
-                        ) : (
-                          "—"
-                        )}
-                      </div>
-                    </section>
-
-                    <section className="truckGroup">
-                      <div className="truckGroupTitle">
-                        <span>Commercial</span>
-                        <span className="truckGroupCount">
-                          {commercial.length}
-                        </span>
-                      </div>
-                      <div className="truckGroupList">
-                        {commercial.length ? (
-                          <CommaList items={commercial} keyPrefix="tv-com" />
-                        ) : (
-                          "—"
-                        )}
-                      </div>
-                    </section>
-                  </>
-                )}
-              </div>
-            </div>
-
-            <div className="card">
-              <div className="cardTitleRow">
-                <div className="cardTitle small">Trucks Unavailable</div>
-                <div className="count">{unavailableSortedCount}</div>
-              </div>
-
-              <div className="trucksBody">
-                {unavailableSortedCount === 0 ? (
-                  <div className="empty">All trucks available ✅</div>
-                ) : (
-                  groupedTrucks.map(([label, trucks]) => (
-                    <section className="truckGroup" key={label}>
-                      <div className={`truckGroupTitle ${label.toLowerCase()}`}>
-                        <span>{label}</span>
-                        <span className="truckGroupCount">{trucks.length}</span>
-                      </div>
-                      <div className="truckGroupList">
-                        <CommaList
-                          items={trucks}
-                          keyPrefix={`unavail-${label}`}
-                        />
-                      </div>
-                    </section>
-                  ))
-                )}
-              </div>
-            </div>
+      <div className="operationsRail" ref={railRef}>
+        <section className="card railPanel">
+          <div className="cardTitleRow">
+            <div className="cardTitle">Drivers Ready</div>
+            <div className="count">{availableDrivers.length}</div>
           </div>
-
-          <div className="sidebarFace sidebarBack">
-            <div className="card">
-              <div className="cardTitleRow">
-                <div className="cardTitle small">Drivers Available</div>
-                <div className="count">{availableDrivers.length}</div>
-              </div>
-
-              <div className="driversBody">
-                {availableDrivers.length === 0 ? (
-                  <div className="empty">No available drivers</div>
-                ) : (
-                  <div className="truckGroupList">
-                    <CommaList
-                      items={availableDrivers}
-                      keyPrefix="tv-avail-driver"
-                    />
-                  </div>
-                )}
-              </div>
-            </div>
-
-            <div className="card">
-              <div className="cardTitleRow">
-                <div className="cardTitle small">Drivers Unavailable</div>
-                <div className="count">{unavailableDrivers.length}</div>
-              </div>
-
-              <div className="driversBody">
-                {unavailableDrivers.length === 0 ? (
-                  <div className="empty">None ✅</div>
-                ) : (
-                  <div className="truckGroupList">
-                    <CommaList
-                      items={unavailableDrivers}
-                      keyPrefix="tv-unavail-driver"
-                    />
-                  </div>
-                )}
-              </div>
-            </div>
+          <div className="railBody singleList">
+            {availableDrivers.length === 0 ? (
+              <div className="empty">No available drivers.</div>
+            ) : (
+              <CommaList items={availableDrivers} keyPrefix="driver-ready" />
+            )}
           </div>
-        </div>
+        </section>
+
+        <section className="card railPanel">
+          <div className="cardTitleRow">
+            <div className="cardTitle">Drivers Out</div>
+            <div className="count">{unavailableDrivers.length}</div>
+          </div>
+          <div className="railBody singleList">
+            {unavailableDrivers.length === 0 ? (
+              <div className="empty">All drivers are present.</div>
+            ) : (
+              <CommaList items={unavailableDrivers} keyPrefix="driver-out" />
+            )}
+          </div>
+        </section>
+
+        <section className="card railPanel">
+          <div className="cardTitleRow">
+            <div className="cardTitle">Trucks Ready</div>
+            <div className="count">{availableTrucksCount}</div>
+          </div>
+          <div className="railBody">
+            {availableTrucksCount === 0 ? (
+              <div className="empty">No available trucks.</div>
+            ) : (
+              truckReadySections.map((section) => (
+                <section className="railGroup" key={section.label}>
+                  <div className="railGroupHeader">
+                    <span>{section.label}</span>
+                    <span className="railGroupCount">{section.items.length}</span>
+                  </div>
+                  <div className="railGroupList">
+                    {section.items.length ? (
+                      <CommaList
+                        items={section.items}
+                        keyPrefix={`truck-ready-${section.label}`}
+                      />
+                    ) : (
+                      "—"
+                    )}
+                  </div>
+                </section>
+              ))
+            )}
+          </div>
+        </section>
+
+        <section className="card railPanel">
+          <div className="cardTitleRow">
+            <div className="cardTitle">Trucks Down</div>
+            <div className="count">{unavailableSortedCount}</div>
+          </div>
+          <div className="railBody">
+            {unavailableSortedCount === 0 ? (
+              <div className="empty">No trucks are down.</div>
+            ) : (
+              groupedTrucks.map(([label, trucks]) => (
+                <section className="railGroup" key={label}>
+                  <div className={`railGroupHeader ${label.toLowerCase()}`}>
+                    <span>{label}</span>
+                    <span className="railGroupCount">{trucks.length}</span>
+                  </div>
+                  <div className="railGroupList">
+                    <CommaList items={trucks} keyPrefix={`truck-down-${label}`} />
+                  </div>
+                </section>
+              ))
+            )}
+          </div>
+        </section>
       </div>
     </aside>
   );
